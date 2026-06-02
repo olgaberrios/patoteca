@@ -556,10 +556,12 @@ function setSyncStatus(msg){document.getElementById('syncStatus').textContent=ms
 // ══════════════════════════════════════════════
 function renderAll(){ renderTabs(); renderCards(); renderFilters(); }
 
+const HIDDEN_TABS = ['docus','cine_clasico'];
 function renderTabs(){
   const w=document.getElementById('tabsWrapper');
   let html=`<button class="tab-btn ${currentCategory==='all'?'active':''}" onclick="setCategory('all')">🐤 Todos <span class="tab-badge">${db.items.length}</span></button>`;
   for(const cat of db.categories){
+    if(HIDDEN_TABS.includes(cat.id)) continue;
     const cnt=db.items.filter(i=>i.category===cat.id).length;
     html+=`<button class="tab-btn ${currentCategory===cat.id?'active':''}" onclick="setCategory('${cat.id}')">${cat.emoji} ${cat.label} <span class="tab-badge">${cnt}</span></button>`;
   }
@@ -732,11 +734,20 @@ function saveItem(){
   saveLocal(); closeModal('itemModal'); renderAll();
   if(db.settings.token) syncGist();
 }
-function deleteItem(){
+async function deleteItem(){
   if(!confirm('¿Eliminar este elemento?'))return;
   db.items=db.items.filter(i=>i.id!==editingId);
-  saveLocal(); closeModal('itemModal'); renderAll(); showToast('🗑️ Eliminado');
-  if(db.settings.token) syncGist();
+  saveLocal(); closeModal('itemModal'); renderAll(); showToast('🗑️ Eliminando…');
+  if(db.settings.token){
+    try{
+      await pushGist();
+      showToast('🗑️ Eliminado y sincronizado');
+    }catch(e){
+      showToast('🗑️ Eliminado (sin sync: '+e.message+')');
+    }
+  } else {
+    showToast('🗑️ Eliminado');
+  }
 }
 
 // ══════════════════════════════════════════════
