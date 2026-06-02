@@ -68,11 +68,17 @@
   .card::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle at top right,rgba(244,123,32,.08),transparent 70%);pointer-events:none}
   .card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(200,94,0,.22)}
   .card.seen{border-left-color:#4CAF50;opacity:.9}
+  .card.watching{border-left-color:#1E88E5}
+  .card.paused{border-left-color:#F9A825;opacity:.9}
+  .card.abandoned{border-left-color:#E53935;opacity:.7}
   .card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
   .card-title{font-family:var(--font-title);font-size:19px;color:var(--text);line-height:1.2;flex:1}
   .card-status{flex-shrink:0;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px}
   .card-status.pending{background:var(--orange-mid);color:var(--orange-darker)}
   .card-status.seen{background:#C8F0D0;color:#1B6B30}
+  .card-status.watching{background:#E3F2FD;color:#0D47A1}
+  .card-status.paused{background:#FFF8E1;color:#7A5800}
+  .card-status.abandoned{background:#FFEBEE;color:#B71C1C}
   .card-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
   .card-tag{font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--orange-pale);color:var(--orange-dark);border:1px solid var(--orange-mid)}
   .card-tag.genre{background:#FFF0E0;color:var(--orange-darker)}
@@ -114,6 +120,9 @@
   .status-toggle input{display:none}
   .status-toggle input:checked+label.pending-lbl{background:var(--orange-mid);border-color:var(--orange);color:var(--orange-darker)}
   .status-toggle input:checked+label.seen-lbl{background:#C8F0D0;border-color:#4CAF50;color:#1B6B30}
+  .status-toggle input:checked+label.watching-lbl{background:#E3F2FD;border-color:#1E88E5;color:#0D47A1}
+  .status-toggle input:checked+label.paused-lbl{background:#FFF8E1;border-color:#F9A825;color:#7A5800}
+  .status-toggle input:checked+label.abandoned-lbl{background:#FFEBEE;border-color:#E53935;color:#B71C1C}
   /* Topics picker */
   .topics-picker{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
   .topic-chip{padding:6px 14px;border-radius:20px;border:2px solid var(--orange-mid);font-family:var(--font-body);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:white;color:var(--text-light)}
@@ -227,6 +236,9 @@
     <select class="filter-select" id="filterStatus" onchange="renderCards()">
       <option value="">Todos</option>
       <option value="pending">Pendiente</option>
+      <option value="watching">En curso</option>
+      <option value="paused">En pausa</option>
+      <option value="abandoned">Abandonado</option>
       <option value="seen">Visto/Leído</option>
     </select>
   </div>
@@ -308,9 +320,15 @@
     </div>
     <div class="form-group">
       <label>Estado</label>
-      <div class="status-toggle">
+      <div class="status-toggle" style="flex-wrap:wrap;gap:8px">
         <input type="radio" name="fStatus" id="sPending" value="pending" checked/>
         <label for="sPending" class="pending-lbl">⏳ Pendiente</label>
+        <input type="radio" name="fStatus" id="sWatching" value="watching"/>
+        <label for="sWatching" class="watching-lbl">▶️ En curso</label>
+        <input type="radio" name="fStatus" id="sPaused" value="paused"/>
+        <label for="sPaused" class="paused-lbl">⏸️ En pausa</label>
+        <input type="radio" name="fStatus" id="sAbandoned" value="abandoned"/>
+        <label for="sAbandoned" class="abandoned-lbl">🛑 Abandonado</label>
         <input type="radio" name="fStatus" id="sSeen" value="seen"/>
         <label for="sSeen" class="seen-lbl">✅ Visto / Leído</label>
       </div>
@@ -586,9 +604,23 @@ function renderCards(){
     return true;
   });
 
-  if(currentSort==='alpha') items.sort((a,b)=>a.title.localeCompare(b.title,'es'));
-  else if(currentSort==='genre') items.sort((a,b)=>((a.genres||[])[0]||'').localeCompare(((b.genres||[])[0]||''),'es'));
-  else items.sort((a,b)=>new Date(b.addedDate)-new Date(a.addedDate));
+  const statusOrder = {watching:0,paused:1,pending:2,seen:3,abandoned:4};
+  if(currentSort==='alpha'){
+    items.sort((a,b)=>{
+      const so=(statusOrder[a.status]||2)-(statusOrder[b.status]||2);
+      return so!==0?so:a.title.localeCompare(b.title,'es');
+    });
+  } else if(currentSort==='genre'){
+    items.sort((a,b)=>{
+      const so=(statusOrder[a.status]||2)-(statusOrder[b.status]||2);
+      return so!==0?so:((a.genres||[])[0]||'').localeCompare(((b.genres||[])[0]||''),'es');
+    });
+  } else {
+    items.sort((a,b)=>{
+      const so=(statusOrder[a.status]||2)-(statusOrder[b.status]||2);
+      return so!==0?so:new Date(b.addedDate)-new Date(a.addedDate);
+    });
+  }
 
   if(!items.length){
     grid.innerHTML=`<div class="empty-state"><div class="empty-duck">🐥</div><h3>Nada por aquí</h3><p>Prueba a cambiar los filtros o pulsa <strong>+</strong> para añadir</p></div>`;
@@ -604,7 +636,7 @@ function renderCards(){
     return `<div class="card ${item.status==='seen'?'seen':''}" onclick="openEditModal('${item.id}')">
       <div class="card-header">
         <div class="card-title">${esc(item.title)}</div>
-        <span class="card-status ${item.status}">${item.status==='seen'?'✅ Visto':'⏳ Pendiente'}</span>
+        <span class="card-status ${item.status}">${item.status==='seen'?'✅ Visto':item.status==='watching'?'▶️ En curso':item.status==='paused'?'⏸️ En pausa':item.status==='abandoned'?'🛑 Abandonado':'⏳ Pendiente'}</span>
       </div>
       <div class="card-meta">
         <span class="card-tag">${catObj.emoji} ${catObj.label}</span>
@@ -674,7 +706,7 @@ function openEditModal(id){
   document.getElementById(item.status==='seen'?'sSeen':'sPending').checked=true;
   document.getElementById('fSeenDate').value=item.seenDate||'';
   document.getElementById('fNote').value=item.note||'';
-  document.getElementById('seenFields').style.display=item.status==='seen'?'block':'none';
+  document.getElementById('seenFields').style.display=['seen','paused','abandoned','watching'].includes(item.status)?'block':'none';
   document.getElementById('deleteRow').style.display='flex';
   openModal('itemModal');
 }
@@ -877,7 +909,10 @@ function openModal(id){ document.getElementById(id).classList.add('open'); docum
 function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
 function closeModalIfBg(e,id){ if(e.target===e.currentTarget) closeModal(id); }
 document.querySelectorAll('input[name="fStatus"]').forEach(r=>{
-  r.addEventListener('change',function(){ document.getElementById('seenFields').style.display=this.value==='seen'?'block':'none'; });
+  r.addEventListener('change',function(){
+    document.getElementById('seenFields').style.display=
+      ['seen','paused','abandoned','watching'].includes(this.value)?'block':'none';
+  });
 });
 function setCategory(cat){ currentCategory=cat; renderAll(); }
 function setSort(s,btn){ currentSort=s; document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderCards(); }
@@ -914,13 +949,18 @@ function renderStatsContent(seenItems, years){
   const total = db.items.length;
   const totalSeen = seenItems.length;
   const totalPending = db.items.filter(i=>i.status==='pending').length;
+  const totalWatching = db.items.filter(i=>i.status==='watching').length;
+  const totalPaused = db.items.filter(i=>i.status==='paused').length;
+  const totalAbandoned = db.items.filter(i=>i.status==='abandoned').length;
 
   // Global summary cards
   let html = `<div class="stats-grid">
     <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total en la Patoteca</div></div>
-    <div class="stat-card"><div class="stat-num">${totalSeen}</div><div class="stat-label">Vistos / Leídos</div></div>
-    <div class="stat-card"><div class="stat-num">${totalPending}</div><div class="stat-label">Pendientes</div></div>
-    <div class="stat-card"><div class="stat-num">${years.length||0}</div><div class="stat-label">Años con actividad</div></div>
+    <div class="stat-card"><div class="stat-num">${totalSeen}</div><div class="stat-label">✅ Vistos / Leídos</div></div>
+    <div class="stat-card"><div class="stat-num">${totalWatching}</div><div class="stat-label">▶️ En curso</div></div>
+    <div class="stat-card"><div class="stat-num">${totalPending}</div><div class="stat-label">⏳ Pendientes</div></div>
+    <div class="stat-card"><div class="stat-num">${totalPaused}</div><div class="stat-label">⏸️ En pausa</div></div>
+    <div class="stat-card"><div class="stat-num">${totalAbandoned}</div><div class="stat-label">🛑 Abandonados</div></div>
   </div>`;
 
   // Category breakdown (all seen)
