@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>La Patoteca</title>
+<meta name="description" content="Tu biblioteca personal de recomendaciones"/>
+<meta name="theme-color" content="#E86A00"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Patoteca"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --orange:#F47B20;--orange-dark:#C85E00;--orange-darker:#A34B00;
+    --orange-light:#FFF0E0;--orange-pale:#FFF8F0;--orange-mid:#FFD9B3;
+    --white:#fff;--text:#3A1F00;--text-light:#7A4A10;
+    --card-shadow:0 4px 20px rgba(200,94,0,.15);
+    --radius:16px;--radius-sm:10px;
+    --font-title:'Fredoka One',cursive;--font-body:'Nunito',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:var(--font-body);background:var(--orange-light);color:var(--text);min-height:100dvh;overflow-x:hidden}
+  /* HEADER */
+  header{background:var(--orange);padding:14px 16px 10px;position:sticky;top:0;z-index:100;box-shadow:0 3px 16px rgba(200,94,0,.35)}
+  .header-top{display:flex;align-items:center;gap:10px;justify-content:space-between}
+  .logo-area{display:flex;align-items:center;gap:10px}
+  .duck-icon{width:46px;height:46px;border-radius:12px;background:white;padding:3px;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.2)}
+  .app-title{font-family:var(--font-title);font-size:28px;color:white;line-height:1;text-shadow:1px 2px 4px rgba(0,0,0,.2);letter-spacing:.5px}
+  .header-actions{display:flex;gap:8px;align-items:center}
+  .btn-icon{background:rgba(255,255,255,.2);border:none;cursor:pointer;color:white;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;transition:background .2s}
+  .btn-icon:hover{background:rgba(255,255,255,.35)}
+  .sync-status{font-size:11px;color:rgba(255,255,255,.85);text-align:center;margin-top:4px}
+  /* SEARCH */
+  .search-bar{margin:12px 16px 0;position:relative}
+  .search-bar input{width:100%;padding:10px 36px 10px 42px;border-radius:50px;border:none;background:rgba(255,255,255,.95);font-family:var(--font-body);font-size:15px;color:var(--text);outline:none;box-shadow:0 2px 8px rgba(0,0,0,.12)}
+  .search-bar input::placeholder{color:#C08050}
+  .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:17px;color:var(--orange-dark);pointer-events:none}
+  .search-clear{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:var(--orange-dark);display:none}
+  .search-bar input:not(:placeholder-shown)~.search-clear{display:block}
+  /* TABS */
+  .tabs-wrapper{background:var(--orange);padding:10px 16px 0;overflow-x:auto;display:flex;gap:6px;scrollbar-width:none}
+  .tabs-wrapper::-webkit-scrollbar{display:none}
+  .tab-btn{flex-shrink:0;padding:7px 14px;border-radius:20px 20px 0 0;border:none;cursor:pointer;font-family:var(--font-body);font-size:13px;font-weight:700;background:rgba(255,255,255,.2);color:rgba(255,255,255,.85);transition:all .2s;white-space:nowrap}
+  .tab-btn.active{background:var(--orange-light);color:var(--orange-dark)}
+  .tab-badge{display:inline-block;background:var(--orange-dark);color:white;border-radius:10px;font-size:10px;padding:1px 5px;margin-left:4px;vertical-align:middle}
+  .tab-btn.active .tab-badge{background:var(--orange);color:white}
+  /* FILTERS */
+  .filters-bar{background:var(--orange-pale);border-bottom:2px solid var(--orange-mid);padding:10px 16px;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;align-items:center;flex-wrap:wrap}
+  .filter-group{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .filter-label{font-size:11px;font-weight:800;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;flex-shrink:0}
+  select.filter-select{padding:5px 24px 5px 10px;border-radius:20px;border:2px solid var(--orange-mid);background:white;font-family:var(--font-body);font-size:13px;font-weight:600;color:var(--text);cursor:pointer;outline:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23C85E00' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}
+  select.filter-select:focus{border-color:var(--orange)}
+  .sort-btn{padding:5px 12px;border-radius:20px;border:2px solid var(--orange-mid);background:white;font-family:var(--font-body);font-size:13px;font-weight:600;color:var(--text);cursor:pointer;transition:all .2s}
+  .sort-btn.active{background:var(--orange);color:white;border-color:var(--orange)}
+  /* MAIN */
+  main{padding:16px;max-width:700px;margin:0 auto}
+  /* EMPTY */
+  .empty-state{text-align:center;padding:60px 20px;color:var(--text-light)}
+  .empty-duck{font-size:64px;margin-bottom:12px;opacity:.6}
+  .empty-state h3{font-family:var(--font-title);font-size:22px;color:var(--orange-dark);margin-bottom:6px}
+  /* CARDS */
+  .cards-grid{display:flex;flex-direction:column;gap:12px}
+  .card{background:white;border-radius:var(--radius);padding:16px;box-shadow:var(--card-shadow);border-left:5px solid var(--orange);transition:transform .15s,box-shadow .15s;cursor:pointer;position:relative;overflow:hidden}
+  .card::before{content:'';position:absolute;top:0;right:0;width:60px;height:60px;background:radial-gradient(circle at top right,rgba(244,123,32,.08),transparent 70%);pointer-events:none}
+  .card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(200,94,0,.22)}
+  .card.seen{border-left-color:#4CAF50;opacity:.9}
+  .card-header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .card-title{font-family:var(--font-title);font-size:19px;color:var(--text);line-height:1.2;flex:1}
+  .card-status{flex-shrink:0;font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.5px}
+  .card-status.pending{background:var(--orange-mid);color:var(--orange-darker)}
+  .card-status.seen{background:#C8F0D0;color:#1B6B30}
+  .card-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-items:center}
+  .card-tag{font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--orange-pale);color:var(--orange-dark);border:1px solid var(--orange-mid)}
+  .card-tag.genre{background:#FFF0E0;color:var(--orange-darker)}
+  .card-tag.recommender{background:#E8F4FF;color:#1A4A7A;border-color:#B3D4F0}
+  .card-tag.topic{border-radius:20px;font-size:11px;font-weight:800;padding:2px 8px}
+  .topic-Lésbicas{background:#FFE8F5;color:#8B005A;border:1px solid #F4B8DC}
+  .topic-Feminismo{background:#FFF3CD;color:#7A5800;border:1px solid #F0D080}
+  .topic-LGTBIQ{background:#E8F0FF;color:#1A3A8A;border:1px solid #9BB8F4}
+  .topic-Guerra{background:#F0E8FF;color:#4A1A7A;border:1px solid #C4A0E8}
+  .topic-Racismo{background:#E8F5E9;color:#1B5E20;border:1px solid #A5D6A7}
+  .topic-Salud{background:#E3F2FD;color:#0D47A1;border:1px solid #90CAF9}
+  .topic-Argentina{background:#FFF8E1;color:#E65100;border:1px solid #FFCC02}
+  .card-date{font-size:12px;color:var(--text-light);margin-left:auto}
+  .card-link{font-size:12px;color:var(--orange-dark);text-decoration:none;display:flex;align-items:center;gap:3px}
+  .card-link:hover{text-decoration:underline}
+  .card-note{font-size:13px;color:var(--text-light);margin-top:8px;padding-top:8px;border-top:1px dashed var(--orange-mid);font-style:italic}
+  .card-seen-date{font-size:12px;color:#2E7D32;font-weight:600;margin-top:4px}
+  /* FAB */
+  .fab{position:fixed;bottom:24px;right:20px;width:58px;height:58px;border-radius:50%;background:var(--orange-dark);border:none;cursor:pointer;color:white;font-size:28px;box-shadow:0 6px 20px rgba(200,94,0,.5);display:flex;align-items:center;justify-content:center;transition:transform .15s,box-shadow .15s;z-index:50}
+  .fab:hover{transform:scale(1.08);box-shadow:0 8px 26px rgba(200,94,0,.6)}
+  .fab:active{transform:scale(.96)}
+  @supports(padding-bottom:env(safe-area-inset-bottom)){.fab{bottom:calc(24px + env(safe-area-inset-bottom))}}
+  /* MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(60,20,0,.45);z-index:200;display:flex;align-items:flex-end;backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .25s}
+  .modal-overlay.open{opacity:1;pointer-events:auto}
+  .modal{background:white;border-radius:24px 24px 0 0;width:100%;max-height:92dvh;overflow-y:auto;padding:24px 20px calc(env(safe-area-inset-bottom,0px) + 24px);transform:translateY(100%);transition:transform .3s cubic-bezier(.32,1,.23,1)}
+  .modal-overlay.open .modal{transform:translateY(0)}
+  .modal-handle{width:40px;height:4px;border-radius:4px;background:var(--orange-mid);margin:0 auto 20px}
+  .modal-title{font-family:var(--font-title);font-size:24px;color:var(--orange-dark);margin-bottom:20px;text-align:center}
+  .form-group{margin-bottom:16px}
+  .form-group label{display:block;font-size:13px;font-weight:800;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  .form-group input,.form-group select,.form-group textarea{width:100%;padding:11px 14px;border-radius:var(--radius-sm);border:2px solid var(--orange-mid);font-family:var(--font-body);font-size:15px;color:var(--text);background:var(--orange-pale);outline:none;transition:border-color .2s}
+  .form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--orange)}
+  .form-group textarea{resize:vertical;min-height:80px}
+  .form-row{display:flex;gap:12px}
+  .form-row .form-group{flex:1}
+  .status-toggle{display:flex;gap:10px;margin-top:4px}
+  .status-toggle label{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-radius:var(--radius-sm);border:2px solid var(--orange-mid);cursor:pointer;font-size:14px;font-weight:700;transition:all .2s;text-transform:none;letter-spacing:0;color:var(--text-light)}
+  .status-toggle input{display:none}
+  .status-toggle input:checked+label.pending-lbl{background:var(--orange-mid);border-color:var(--orange);color:var(--orange-darker)}
+  .status-toggle input:checked+label.seen-lbl{background:#C8F0D0;border-color:#4CAF50;color:#1B6B30}
+  /* Topics picker */
+  .topics-picker{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .topic-chip{padding:6px 14px;border-radius:20px;border:2px solid var(--orange-mid);font-family:var(--font-body);font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;background:white;color:var(--text-light)}
+  .topic-chip.selected{border-color:var(--orange-dark);color:var(--orange-darker);background:var(--orange-light)}
+  .topic-chip[data-topic="Lésbicas"].selected{background:#FFE8F5;border-color:#D4006A;color:#8B005A}
+  .topic-chip[data-topic="Feminismo"].selected{background:#FFF3CD;border-color:#C89000;color:#7A5800}
+  .topic-chip[data-topic="LGTBIQ+"].selected{background:#E8F0FF;border-color:#3060D0;color:#1A3A8A}
+  .topic-chip[data-topic="Guerra civil y franquismo"].selected{background:#F0E8FF;border-color:#7040C0;color:#4A1A7A}
+  /* Btn */
+  .btn-row{display:flex;gap:10px;margin-top:6px}
+  .btn-primary{flex:1;padding:14px;border-radius:var(--radius-sm);background:var(--orange);border:none;cursor:pointer;font-family:var(--font-body);font-size:16px;font-weight:800;color:white;transition:background .2s}
+  .btn-primary:hover{background:var(--orange-dark)}
+  .btn-secondary{padding:14px 20px;border-radius:var(--radius-sm);background:var(--orange-pale);border:2px solid var(--orange-mid);cursor:pointer;font-family:var(--font-body);font-size:16px;font-weight:700;color:var(--text-light);transition:all .2s}
+  .btn-secondary:hover{border-color:var(--orange);color:var(--orange-dark)}
+  .btn-danger{padding:14px 20px;border-radius:var(--radius-sm);background:#FFECEC;border:2px solid #FFCCCC;cursor:pointer;font-family:var(--font-body);font-size:15px;font-weight:700;color:#CC3333;transition:all .2s}
+  .btn-danger:hover{background:#FFDDDD}
+  .btn-sm{padding:6px 14px;font-size:13px;border-radius:20px;border:2px solid var(--orange-mid);background:white;cursor:pointer;font-family:var(--font-body);font-weight:700;color:var(--text-light);transition:all .2s}
+  .btn-sm:hover{border-color:var(--orange);color:var(--orange-dark)}
+  /* Settings */
+  .settings-section{margin-bottom:24px}
+  .settings-section h3{font-family:var(--font-title);font-size:18px;color:var(--orange-dark);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+  .settings-info{background:var(--orange-pale);border-radius:var(--radius-sm);padding:12px;font-size:13px;color:var(--text-light);border:1px solid var(--orange-mid);margin-bottom:10px;line-height:1.6}
+  .settings-info a{color:var(--orange-dark)}
+  .gist-status{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:8px 12px;border-radius:var(--radius-sm);margin-top:8px}
+  .gist-status.ok{background:#C8F0D0;color:#1B6B30}
+  .gist-status.err{background:#FFE0E0;color:#CC2200}
+  .gist-status.idle{background:var(--orange-pale);color:var(--text-light)}
+  .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .dot.green{background:#4CAF50}.dot.red{background:#F44336}.dot.grey{background:#aaa}
+  /* Category/Topic management */
+  .manage-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+  .manage-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--orange-pale);border-radius:var(--radius-sm);border:1px solid var(--orange-mid)}
+  .manage-item span{flex:1;font-weight:600;font-size:14px}
+  .manage-item .emoji-input{width:40px;text-align:center;border:none;background:none;font-size:18px;cursor:pointer}
+  /* STATS */
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+  .stat-card{background:var(--orange-pale);border-radius:var(--radius-sm);padding:14px;text-align:center;border:2px solid var(--orange-mid)}
+  .stat-num{font-family:var(--font-title);font-size:32px;color:var(--orange-dark);line-height:1}
+  .stat-label{font-size:12px;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.5px;margin-top:4px}
+  .stats-section-title{font-family:var(--font-title);font-size:18px;color:var(--orange-dark);margin:20px 0 10px;display:flex;align-items:center;gap:6px}
+  .stats-year-selector{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+  .year-btn{padding:5px 14px;border-radius:20px;border:2px solid var(--orange-mid);background:white;font-family:var(--font-body);font-size:13px;font-weight:700;color:var(--text-light);cursor:pointer;transition:all .2s}
+  .year-btn.active{background:var(--orange);color:white;border-color:var(--orange)}
+  .month-bars{display:flex;flex-direction:column;gap:6px}
+  .month-row{display:flex;align-items:center;gap:10px}
+  .month-name{font-size:12px;font-weight:700;color:var(--text-light);width:32px;flex-shrink:0;text-align:right}
+  .month-bar-wrap{flex:1;background:var(--orange-mid);border-radius:20px;height:22px;overflow:hidden;position:relative}
+  .month-bar-fill{height:100%;border-radius:20px;background:var(--orange);transition:width .4s ease;display:flex;align-items:center;padding-left:8px;min-width:0}
+  .month-bar-fill.zero{background:transparent}
+  .month-count{font-size:11px;font-weight:800;color:white;white-space:nowrap}
+  .month-count.outside{color:var(--text-light);position:absolute;left:8px;top:50%;transform:translateY(-50%)}
+  .cat-bars{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+  .cat-row{display:flex;align-items:center;gap:10px}
+  .cat-name{font-size:12px;font-weight:700;color:var(--text-light);width:90px;flex-shrink:0;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .cat-bar-wrap{flex:1;background:var(--orange-mid);border-radius:20px;height:24px;overflow:hidden;position:relative}
+  .cat-bar-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--orange-dark),var(--orange));display:flex;align-items:center;padding:0 8px;min-width:24px}
+  .cat-bar-fill span{font-size:11px;font-weight:800;color:white}
+  .topic-stat-row{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--orange-pale);border-radius:var(--radius-sm);border:1px solid var(--orange-mid);margin-bottom:6px}
+  .topic-stat-name{font-size:13px;font-weight:700;color:var(--text)}
+  .topic-stat-num{font-family:var(--font-title);font-size:20px;color:var(--orange-dark)}
+  /* Toast */
+  .toast{position:fixed;bottom:calc(90px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%) translateY(20px);background:var(--orange-darker);color:white;padding:10px 20px;border-radius:20px;font-size:14px;font-weight:700;opacity:0;transition:all .3s;z-index:300;white-space:nowrap;pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* Spinner */
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  ::-webkit-scrollbar{width:6px}
+  ::-webkit-scrollbar-track{background:var(--orange-pale)}
+  ::-webkit-scrollbar-thumb{background:var(--orange-mid);border-radius:4px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div class="logo-area">
+      <svg class="duck-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100" height="100" rx="20" fill="#F47B20"/>
+        <ellipse cx="50" cy="68" rx="28" ry="22" fill="white"/>
+        <circle cx="50" cy="38" r="20" fill="white"/>
+        <path d="M47 19 Q50 13 53 19" stroke="white" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <ellipse cx="44" cy="35" rx="3" ry="4" fill="#F47B20"/>
+        <ellipse cx="56" cy="35" rx="3" ry="4" fill="#F47B20"/>
+        <path d="M43 43 Q50 49 57 43" fill="#F47B20"/>
+        <rect x="28" y="60" width="44" height="30" rx="3" fill="white" stroke="#F47B20" stroke-width="2"/>
+        <line x1="50" y1="60" x2="50" y2="90" stroke="#F47B20" stroke-width="2"/>
+        <ellipse cx="30" cy="72" rx="9" ry="7" fill="white" stroke="#F47B20" stroke-width="1.5"/>
+        <ellipse cx="70" cy="72" rx="9" ry="7" fill="white" stroke="#F47B20" stroke-width="1.5"/>
+      </svg>
+      <span class="app-title">La Patoteca</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" onclick="openStats()" title="Estadísticas">📊</button>
+      <button class="btn-icon" onclick="openSettings()" title="Ajustes">⚙️</button>
+      <button class="btn-icon" id="syncBtn" onclick="syncGist()" title="Sincronizar">🔄</button>
+    </div>
+  </div>
+  <div class="search-bar" style="margin-bottom:8px">
+    <span class="search-icon">🔍</span>
+    <input type="search" id="searchInput" placeholder="Buscar en la Patoteca…" oninput="renderCards()"/>
+    <button class="search-clear" onclick="document.getElementById('searchInput').value='';renderCards()">✕</button>
+  </div>
+  <div id="syncStatus" class="sync-status"></div>
+</header>
+
+<div class="tabs-wrapper" id="tabsWrapper"></div>
+
+<div class="filters-bar">
+  <div class="filter-group">
+    <span class="filter-label">Estado</span>
+    <select class="filter-select" id="filterStatus" onchange="renderCards()">
+      <option value="">Todos</option>
+      <option value="pending">Pendiente</option>
+      <option value="seen">Visto/Leído</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Género</span>
+    <select class="filter-select" id="filterGenre" onchange="renderCards()">
+      <option value="">Todos</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Tema</span>
+    <select class="filter-select" id="filterTopic" onchange="renderCards()">
+      <option value="">Todos</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Recomendó</span>
+    <select class="filter-select" id="filterRecommender" onchange="renderCards()">
+      <option value="">Todos</option>
+    </select>
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Orden</span>
+    <button class="sort-btn active" data-sort="date" onclick="setSort('date',this)">📅 Fecha</button>
+    <button class="sort-btn" data-sort="alpha" onclick="setSort('alpha',this)">🔤 A–Z</button>
+    <button class="sort-btn" data-sort="genre" onclick="setSort('genre',this)">🎭 Género</button>
+  </div>
+</div>
+
+<main>
+  <div class="cards-grid" id="cardsGrid"></div>
+</main>
+
+<button class="fab" onclick="openAddModal()">＋</button>
+<div class="toast" id="toast"></div>
+
+<!-- MODAL: STATS -->
+<div class="modal-overlay" id="statsModal" onclick="closeModalIfBg(event,'statsModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📊 Estadísticas</div>
+    <div id="statsContent"></div>
+    <div class="btn-row" style="margin-top:8px"><button class="btn-primary" onclick="closeModal('statsModal')">Cerrar</button></div>
+  </div>
+</div>
+
+<!-- MODAL: ITEM -->
+<div class="modal-overlay" id="itemModal" onclick="closeModalIfBg(event,'itemModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle">Añadir a la Patoteca 🐥</div>
+    <div class="form-group">
+      <label>Título *</label>
+      <input type="text" id="fTitle" placeholder="Nombre de la peli, serie, libro…"/>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Categoría *</label>
+        <select id="fCategory"></select>
+      </div>
+      <div class="form-group">
+        <label>Género</label>
+        <div class="topics-picker" id="genrePicker"></div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>¿Quién la recomendó?</label>
+        <input type="text" id="fRecommender" placeholder="Nombre (opcional)"/>
+      </div>
+      <div class="form-group">
+        <label>Enlace</label>
+        <input type="url" id="fLink" placeholder="https://…"/>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Temas</label>
+      <div class="topics-picker" id="topicsPicker"></div>
+    </div>
+    <div class="form-group">
+      <label>Estado</label>
+      <div class="status-toggle">
+        <input type="radio" name="fStatus" id="sPending" value="pending" checked/>
+        <label for="sPending" class="pending-lbl">⏳ Pendiente</label>
+        <input type="radio" name="fStatus" id="sSeen" value="seen"/>
+        <label for="sSeen" class="seen-lbl">✅ Visto / Leído</label>
+      </div>
+    </div>
+    <div id="seenFields" style="display:none">
+      <div class="form-group">
+        <label>Fecha visto / leído</label>
+        <input type="date" id="fSeenDate"/>
+      </div>
+      <div class="form-group">
+        <label>Notas</label>
+        <textarea id="fNote" placeholder="¿Qué te pareció?"></textarea>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="closeModal('itemModal')">Cancelar</button>
+      <button class="btn-primary" onclick="saveItem()">💾 Guardar</button>
+    </div>
+    <div class="btn-row" id="deleteRow" style="display:none;margin-top:8px">
+      <button class="btn-danger" style="flex:1" onclick="deleteItem()">🗑️ Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: SETTINGS -->
+<div class="modal-overlay" id="settingsModal" onclick="closeModalIfBg(event,'settingsModal')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">⚙️ Ajustes</div>
+    <div class="settings-section">
+      <h3>🔗 Sincronización con GitHub Gist</h3>
+      <div class="settings-info">
+        Guarda tus datos en un <strong>GitHub Gist secreto</strong> para usarla en varios dispositivos.<br><br>
+        1. Ve a <a href="https://github.com/settings/tokens" target="_blank">github.com/settings/tokens</a><br>
+        2. Crea un <em>Classic token</em> con permiso <strong>gist</strong><br>
+        3. Pégalo aquí y guarda
+      </div>
+      <div class="form-group"><label>Token de GitHub</label><input type="password" id="sToken" placeholder="ghp_xxxxxxxxxxxxxxxx"/></div>
+      <div class="form-group"><label>Gist ID <span style="font-weight:400;text-transform:none">(automático)</span></label><input type="text" id="sGistId" placeholder="Se crea automáticamente"/></div>
+      <div id="gistStatusDiv" class="gist-status idle"><span class="dot grey"></span>Sin configurar</div>
+      <div class="btn-row" style="margin-top:12px">
+        <button class="btn-secondary" onclick="testGistConnection()">🔍 Probar</button>
+        <button class="btn-primary" onclick="saveSettings()">💾 Guardar</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>🎬 Categorías</h3>
+      <div class="manage-list" id="catManageList"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input type="text" id="newCatEmoji" placeholder="🎬" style="width:50px;padding:8px;border-radius:8px;border:2px solid var(--orange-mid);font-size:16px;text-align:center"/>
+        <input type="text" id="newCatLabel" placeholder="Nueva categoría…" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--orange-mid);font-family:var(--font-body);font-size:14px"/>
+        <button class="btn-sm" onclick="addCategory()">＋ Añadir</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>🏷️ Temas</h3>
+      <div class="manage-list" id="topicManageList"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input type="text" id="newTopicLabel" placeholder="Nuevo tema…" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--orange-mid);font-family:var(--font-body);font-size:14px"/>
+        <button class="btn-sm" onclick="addTopic()">＋ Añadir</button>
+      </div>
+    </div>
+    <div class="settings-section">
+      <h3>📦 Datos locales</h3>
+      <div class="btn-row">
+        <button class="btn-secondary" onclick="exportData()">⬇️ Exportar</button>
+        <button class="btn-secondary" onclick="document.getElementById('importFile').click()">⬆️ Importar</button>
+        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)"/>
+      </div>
+    </div>
+    <div class="btn-row"><button class="btn-primary" onclick="closeModal('settingsModal')">Cerrar</button></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// DEFAULTS
+// ══════════════════════════════════════════════
+const DEFAULT_CATEGORIES = [
+  {id:'pelis',label:'Pelis',emoji:'🎬'},
+  {id:'series',label:'Series',emoji:'📺'},
+  {id:'libros',label:'Libros',emoji:'📚'},
+  {id:'anime',label:'Anime',emoji:'⛩️'},
+  {id:'docus',label:'Docus',emoji:'🎥'},
+  {id:'comics',label:'Cómics',emoji:'💥'},
+  {id:'cine_clasico',label:'Cine clásico',emoji:'🎞️'},
+];
+const DEFAULT_GENRES = [
+  'Acción, aventura o fantasía','Anime','Comedia','Drama',
+  'Historia o hechos reales','Miedo','Otro','Romance','Suspense'
+];
+const DEFAULT_TOPICS = [
+  'Feminismo','Guerra civil y franquismo','Lésbicas','LGTBIQ+',
+  'Racismo y diversidad','Salud mental y discapacidad','Argentina y peronismo'
+];
+const TOPIC_COLORS = {
+  'Lésbicas':'topic-Lésbicas',
+  'Feminismo':'topic-Feminismo',
+  'LGTBIQ+':'topic-LGTBIQ',
+  'Guerra civil y franquismo':'topic-Guerra',
+  'Racismo y diversidad':'topic-Racismo',
+  'Salud mental y discapacidad':'topic-Salud',
+  'Argentina y peronismo':'topic-Argentina',
+};
+
+// ══════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════
+let db = {
+  items: [],
+  categories: [...DEFAULT_CATEGORIES],
+  genres: [...DEFAULT_GENRES],
+  topics: [...DEFAULT_TOPICS],
+  settings: {token:'',gistId:''}
+};
+let currentCategory = 'all';
+let currentSort = 'date';
+let editingId = null;
+
+// ══════════════════════════════════════════════
+// STORAGE
+// ══════════════════════════════════════════════
+function saveLocal(){ localStorage.setItem('patoteca_db', JSON.stringify(db)); }
+function loadLocal(){
+  const raw = localStorage.getItem('patoteca_db');
+  if(raw){ try{ const saved = JSON.parse(raw);
+    // Merge: keep existing items, add new ones without duplication
+    db.settings = saved.settings || db.settings;
+    db.categories = saved.categories || db.categories;
+    db.genres = saved.genres || db.genres;
+    db.topics = saved.topics || db.topics;
+    const existingTitles = new Set((saved.items||[]).map(i=>normalizeTitle(i.title)));
+    const seedItems = SEED_ITEMS.filter(i=>!existingTitles.has(normalizeTitle(i.title)));
+    db.items = [...(saved.items||[]), ...seedItems];
+  }catch(e){ db.items = SEED_ITEMS; } }
+  else { db.items = SEED_ITEMS; }
+}
+function normalizeTitle(t){ return t.toLowerCase().replace(/[^a-záéíóúüñ0-9]/g,''); }
+
+// ══════════════════════════════════════════════
+// GIST
+// ══════════════════════════════════════════════
+const GIST_FILENAME = 'patoteca.json';
+async function syncGist(){
+  if(!db.settings.token){showToast('⚙️ Configura tu token en Ajustes');return;}
+  setSyncStatus('🔄 Sincronizando…');
+  const btn = document.getElementById('syncBtn');
+  btn.innerHTML='<span class="spinner"></span>';
+  try{
+    if(!db.settings.gistId) await createGist(); else await pushGist();
+    setSyncStatus('✅ Sincronizado · '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}));
+    showToast('✅ Sincronizado');
+  }catch(e){setSyncStatus('❌ '+e.message);showToast('❌ '+e.message);}
+  finally{btn.innerHTML='🔄';}
+}
+async function loadFromGist(){
+  if(!db.settings.token||!db.settings.gistId)return;
+  setSyncStatus('⬇️ Cargando desde Gist…');
+  try{
+    const r = await fetch(`https://api.github.com/gists/${db.settings.gistId}`,{headers:{Authorization:'token '+db.settings.token}});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    const data = await r.json();
+    const content = data.files[GIST_FILENAME]?.content;
+    if(content){
+      const remote = JSON.parse(content);
+      const remoteItems = remote.items || [];
+      // Merge: añade ítems locales que no estén en remoto (por si se añadieron offline)
+      const remoteKeys = new Set(remoteItems.map(i=>normalizeTitle(i.title)));
+      const localOnly = db.items.filter(i=>!remoteKeys.has(normalizeTitle(i.title)));
+      db.items = [...remoteItems, ...localOnly];
+      if(remote.categories) db.categories = remote.categories;
+      if(remote.genres) db.genres = remote.genres;
+      if(remote.topics) db.topics = remote.topics;
+      saveLocal(); renderAll();
+      // Si había ítems locales nuevos, súbelos también
+      if(localOnly.length > 0){
+        await pushGist();
+        setSyncStatus('✅ Sincronizado · '+localOnly.length+' nuevos subidos · '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}));
+      } else {
+        setSyncStatus('✅ Sincronizado con Gist · '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}));
+      }
+    } else {
+      // Gist existe pero está vacío: sube los datos locales
+      await pushGist();
+      setSyncStatus('✅ Datos subidos a Gist · '+new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}));
+    }
+  }catch(e){setSyncStatus('⚠️ No se pudo sincronizar: '+e.message);}
+}
+async function createGist(){
+  const payload={description:'La Patoteca – datos',public:false,files:{[GIST_FILENAME]:{content:gistContent()}}};
+  const r=await fetch('https://api.github.com/gists',{method:'POST',headers:{Authorization:'token '+db.settings.token,'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  if(!r.ok)throw new Error('No se pudo crear el Gist ('+r.status+')');
+  const data=await r.json(); db.settings.gistId=data.id; saveLocal();
+  document.getElementById('sGistId').value=data.id;
+}
+async function pushGist(){
+  const r=await fetch(`https://api.github.com/gists/${db.settings.gistId}`,{method:'PATCH',headers:{Authorization:'token '+db.settings.token,'Content-Type':'application/json'},body:JSON.stringify({files:{[GIST_FILENAME]:{content:gistContent()}}})});
+  if(!r.ok)throw new Error('No se pudo subir ('+r.status+')');
+}
+function gistContent(){ return JSON.stringify({items:db.items,categories:db.categories,genres:db.genres,topics:db.topics},null,2); }
+async function testGistConnection(){
+  const token=document.getElementById('sToken').value.trim();
+  const gistId=document.getElementById('sGistId').value.trim();
+  const div=document.getElementById('gistStatusDiv');
+  if(!token){div.className='gist-status err';div.innerHTML='<span class="dot red"></span>Falta el token';return;}
+  div.className='gist-status idle';div.innerHTML='<span class="dot grey"></span>Probando…';
+  try{
+    const r=await fetch(gistId?`https://api.github.com/gists/${gistId}`:'https://api.github.com/gists',{headers:{Authorization:'token '+token}});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    div.className='gist-status ok';div.innerHTML='<span class="dot green"></span>¡Conexión OK!';
+  }catch(e){div.className='gist-status err';div.innerHTML='<span class="dot red"></span>Error: '+e.message;}
+}
+function setSyncStatus(msg){document.getElementById('syncStatus').textContent=msg;}
+
+// ══════════════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════════════
+function renderAll(){ renderTabs(); renderCards(); renderFilters(); }
+
+function renderTabs(){
+  const w=document.getElementById('tabsWrapper');
+  let html=`<button class="tab-btn ${currentCategory==='all'?'active':''}" onclick="setCategory('all')">🐤 Todos <span class="tab-badge">${db.items.length}</span></button>`;
+  for(const cat of db.categories){
+    const cnt=db.items.filter(i=>i.category===cat.id).length;
+    html+=`<button class="tab-btn ${currentCategory===cat.id?'active':''}" onclick="setCategory('${cat.id}')">${cat.emoji} ${cat.label} <span class="tab-badge">${cnt}</span></button>`;
+  }
+  w.innerHTML=html;
+}
+
+function renderFilters(){
+  // Genre filter
+  const gSel=document.getElementById('filterGenre');
+  const gVal=gSel.value;
+  gSel.innerHTML='<option value="">Todos</option>'+db.genres.map(g=>`<option ${g===gVal?'selected':''}>${g}</option>`).join('');
+  // Topic filter
+  const tSel=document.getElementById('filterTopic');
+  const tVal=tSel.value;
+  tSel.innerHTML='<option value="">Todos</option>'+db.topics.map(t=>`<option ${t===tVal?'selected':''}>${t}</option>`).join('');
+  // Recommender filter
+  const rSel=document.getElementById('filterRecommender');
+  const rVal=rSel.value;
+  const names=[...new Set(db.items.map(i=>i.recommender).filter(Boolean))].sort();
+  rSel.innerHTML='<option value="">Todos</option>'+names.map(n=>`<option ${n===rVal?'selected':''}>${n}</option>`).join('');
+}
+
+function renderCards(){
+  const grid=document.getElementById('cardsGrid');
+  const search=document.getElementById('searchInput').value.toLowerCase().trim();
+  const statusF=document.getElementById('filterStatus').value;
+  const genreF=document.getElementById('filterGenre').value;
+  const topicF=document.getElementById('filterTopic').value;
+  const recF=document.getElementById('filterRecommender').value;
+
+  let items=db.items.filter(item=>{
+    if(currentCategory!=='all'&&item.category!==currentCategory)return false;
+    if(statusF&&item.status!==statusF)return false;
+    if(genreF&&!(item.genres||[]).includes(genreF))return false;
+    if(topicF&&!(item.topics||[]).includes(topicF))return false;
+    if(recF&&item.recommender!==recF)return false;
+    if(search&&!item.title.toLowerCase().includes(search)&&
+       !(item.recommender||'').toLowerCase().includes(search)&&
+       !(item.genre||'').toLowerCase().includes(search)&&
+       !(item.note||'').toLowerCase().includes(search)&&
+       !(item.topics||[]).join(' ').toLowerCase().includes(search))return false;
+    return true;
+  });
+
+  if(currentSort==='alpha') items.sort((a,b)=>a.title.localeCompare(b.title,'es'));
+  else if(currentSort==='genre') items.sort((a,b)=>((a.genres||[])[0]||'').localeCompare(((b.genres||[])[0]||''),'es'));
+  else items.sort((a,b)=>new Date(b.addedDate)-new Date(a.addedDate));
+
+  if(!items.length){
+    grid.innerHTML=`<div class="empty-state"><div class="empty-duck">🐥</div><h3>Nada por aquí</h3><p>Prueba a cambiar los filtros o pulsa <strong>+</strong> para añadir</p></div>`;
+    return;
+  }
+
+  grid.innerHTML=items.map(item=>{
+    const catObj=db.categories.find(c=>c.id===item.category)||{emoji:'📌',label:item.category};
+    const topicsHtml=(item.topics||[]).map(tp=>{
+      const cls=TOPIC_COLORS[tp]||'';
+      return `<span class="card-tag topic ${cls}">${tp}</span>`;
+    }).join('');
+    return `<div class="card ${item.status==='seen'?'seen':''}" onclick="openEditModal('${item.id}')">
+      <div class="card-header">
+        <div class="card-title">${esc(item.title)}</div>
+        <span class="card-status ${item.status}">${item.status==='seen'?'✅ Visto':'⏳ Pendiente'}</span>
+      </div>
+      <div class="card-meta">
+        <span class="card-tag">${catObj.emoji} ${catObj.label}</span>
+        ${(item.genres||[]).map(g=>`<span class="card-tag genre">🎭 ${esc(g)}</span>`).join('')}
+        ${item.recommender?`<span class="card-tag recommender">👤 ${esc(item.recommender)}</span>`:''}
+        ${topicsHtml}
+        ${item.link?`<a class="card-link" href="${esc(item.link)}" target="_blank" onclick="event.stopPropagation()">🔗 Ver más</a>`:''}
+        <span class="card-date">${fmtDate(item.addedDate)}</span>
+      </div>
+      ${item.seenDate?`<div class="card-seen-date">📅 Visto el ${fmtDate(item.seenDate)}</div>`:''}
+      ${item.note?`<div class="card-note">${esc(item.note)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════
+// CATEGORY FORM SELECT
+// ══════════════════════════════════════════════
+function buildCategorySelect(selectedId){
+  const sel=document.getElementById('fCategory');
+  sel.innerHTML=db.categories.map(c=>`<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.emoji} ${c.label}</option>`).join('');
+}
+function buildGenrePicker(selectedGenres){
+  const arr = Array.isArray(selectedGenres) ? selectedGenres : (selectedGenres ? [selectedGenres] : []);
+  const div=document.getElementById('genrePicker');
+  div.innerHTML=db.genres.map(g=>`<button type="button" class="topic-chip ${arr.includes(g)?'selected':''}" data-genre="${g}" onclick="this.classList.toggle('selected')">${g}</button>`).join('');
+}
+function getSelectedGenres(){ return [...document.querySelectorAll('#genrePicker .topic-chip.selected')].map(b=>b.dataset.genre); }
+function buildTopicsPicker(selectedTopics){
+  const div=document.getElementById('topicsPicker');
+  div.innerHTML=db.topics.map(t=>`<button type="button" class="topic-chip ${(selectedTopics||[]).includes(t)?'selected':''}" data-topic="${t}" onclick="toggleTopicChip(this)">${t}</button>`).join('');
+}
+function toggleTopicChip(btn){ btn.classList.toggle('selected'); }
+function getSelectedTopics(){ return [...document.querySelectorAll('#topicsPicker .topic-chip.selected')].map(b=>b.dataset.topic); }
+
+// ══════════════════════════════════════════════
+// MODALS: ITEM
+// ══════════════════════════════════════════════
+function openAddModal(){
+  editingId=null;
+  document.getElementById('modalTitle').textContent='Añadir a la Patoteca 🐥';
+  document.getElementById('fTitle').value='';
+  buildCategorySelect(currentCategory!=='all'?currentCategory:db.categories[0]?.id);
+  buildGenrePicker([]);
+  buildTopicsPicker([]);
+  document.getElementById('fRecommender').value='';
+  document.getElementById('fLink').value='';
+  document.getElementById('sPending').checked=true;
+  document.getElementById('fSeenDate').value='';
+  document.getElementById('fNote').value='';
+  document.getElementById('seenFields').style.display='none';
+  document.getElementById('deleteRow').style.display='none';
+  openModal('itemModal');
+  setTimeout(()=>document.getElementById('fTitle').focus(),350);
+}
+function openEditModal(id){
+  const item=db.items.find(i=>i.id===id);
+  if(!item)return;
+  editingId=id;
+  document.getElementById('modalTitle').textContent='Editar 🐤';
+  document.getElementById('fTitle').value=item.title;
+  buildCategorySelect(item.category);
+  buildGenrePicker(Array.isArray(item.genres) ? item.genres : (item.genre ? [item.genre] : []));
+  buildTopicsPicker(item.topics||[]);
+  document.getElementById('fRecommender').value=item.recommender||'';
+  document.getElementById('fLink').value=item.link||'';
+  document.getElementById(item.status==='seen'?'sSeen':'sPending').checked=true;
+  document.getElementById('fSeenDate').value=item.seenDate||'';
+  document.getElementById('fNote').value=item.note||'';
+  document.getElementById('seenFields').style.display=item.status==='seen'?'block':'none';
+  document.getElementById('deleteRow').style.display='flex';
+  openModal('itemModal');
+}
+function saveItem(){
+  const title=document.getElementById('fTitle').value.trim();
+  if(!title){showToast('⚠️ El título es obligatorio');document.getElementById('fTitle').focus();return;}
+  const status=document.querySelector('input[name="fStatus"]:checked').value;
+  const item={
+    id:editingId||uid(),
+    title,
+    category:document.getElementById('fCategory').value,
+    genres:getSelectedGenres(),
+    recommender:document.getElementById('fRecommender').value.trim(),
+    link:document.getElementById('fLink').value.trim(),
+    topics:getSelectedTopics(),
+    status,
+    seenDate:status==='seen'?document.getElementById('fSeenDate').value:'',
+    note:document.getElementById('fNote').value.trim(),
+    addedDate:editingId?(db.items.find(i=>i.id===editingId)?.addedDate||today()):today(),
+  };
+  if(editingId){ db.items=db.items.map(i=>i.id===editingId?item:i); showToast('✏️ Guardado'); }
+  else{ db.items.unshift(item); showToast('🐥 Añadido'); }
+  saveLocal(); closeModal('itemModal'); renderAll();
+  if(db.settings.token) syncGist();
+}
+function deleteItem(){
+  if(!confirm('¿Eliminar este elemento?'))return;
+  db.items=db.items.filter(i=>i.id!==editingId);
+  saveLocal(); closeModal('itemModal'); renderAll(); showToast('🗑️ Eliminado');
+  if(db.settings.token) syncGist();
+}
+
+// ══════════════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════════════
+function openSettings(){
+  document.getElementById('sToken').value=db.settings.token||'';
+  document.getElementById('sGistId').value=db.settings.gistId||'';
+  const div=document.getElementById('gistStatusDiv');
+  if(db.settings.token&&db.settings.gistId){div.className='gist-status ok';div.innerHTML='<span class="dot green"></span>Configurado';}
+  else{div.className='gist-status idle';div.innerHTML='<span class="dot grey"></span>Sin configurar';}
+  renderCatManage();
+  renderTopicManage();
+  openModal('settingsModal');
+}
+function saveSettings(){
+  db.settings.token=document.getElementById('sToken').value.trim();
+  db.settings.gistId=document.getElementById('sGistId').value.trim();
+  saveLocal(); closeModal('settingsModal'); showToast('⚙️ Ajustes guardados');
+  if(db.settings.token&&db.settings.gistId) loadFromGist();
+  else if(db.settings.token) syncGist();
+}
+
+// ══════════════════════════════════════════════
+// CATEGORY MANAGEMENT
+// ══════════════════════════════════════════════
+function renderCatManage(){
+  const el=document.getElementById('catManageList');
+  el.innerHTML=db.categories.map((c,i)=>`
+    <div class="manage-item">
+      <input class="emoji-input" type="text" value="${c.emoji}" onchange="updateCatEmoji(${i},this.value)" maxlength="2"/>
+      <span>${c.label}</span>
+      <button class="btn-sm" onclick="deleteCategory(${i})" style="color:#CC3333;border-color:#FFCCCC">🗑️</button>
+    </div>`).join('');
+}
+function updateCatEmoji(i,v){ db.categories[i].emoji=v; saveLocal(); renderTabs(); }
+function addCategory(){
+  const emoji=document.getElementById('newCatEmoji').value.trim()||'📁';
+  const label=document.getElementById('newCatLabel').value.trim();
+  if(!label)return;
+  const id=label.toLowerCase().replace(/[^a-z0-9]/g,'_');
+  if(db.categories.find(c=>c.id===id)){showToast('⚠️ Ya existe');return;}
+  db.categories.push({id,label,emoji});
+  document.getElementById('newCatLabel').value='';
+  document.getElementById('newCatEmoji').value='';
+  saveLocal(); renderCatManage(); renderTabs();
+  showToast('✅ Categoría añadida');
+}
+function deleteCategory(i){
+  const cat=db.categories[i];
+  if(db.items.some(item=>item.category===cat.id)){
+    if(!confirm(`Hay ítems en "${cat.label}". ¿Seguro que quieres eliminar la categoría?\n(Los ítems quedarán sin categoría asignada)`))return;
+  }
+  db.categories.splice(i,1);
+  saveLocal(); renderCatManage(); renderTabs();
+}
+
+// ══════════════════════════════════════════════
+// TOPIC MANAGEMENT
+// ══════════════════════════════════════════════
+function renderTopicManage(){
+  const el=document.getElementById('topicManageList');
+  el.innerHTML=db.topics.map((t,i)=>`
+    <div class="manage-item">
+      <span>${t}</span>
+      <button class="btn-sm" onclick="deleteTopic(${i})" style="color:#CC3333;border-color:#FFCCCC">🗑️</button>
+    </div>`).join('');
+}
+function addTopic(){
+  const label=document.getElementById('newTopicLabel').value.trim();
+  if(!label)return;
+  if(db.topics.includes(label)){showToast('⚠️ Ya existe');return;}
+  db.topics.push(label);
+  document.getElementById('newTopicLabel').value='';
+  saveLocal(); renderTopicManage(); renderFilters();
+  showToast('✅ Tema añadido');
+}
+function deleteTopic(i){
+  const topic=db.topics[i];
+  db.topics.splice(i,1);
+  db.items.forEach(item=>{ if(item.topics) item.topics=item.topics.filter(t=>t!==topic); });
+  saveLocal(); renderTopicManage(); renderFilters(); renderCards();
+}
+
+// ══════════════════════════════════════════════
+// IMPORT / EXPORT
+// ══════════════════════════════════════════════
+function exportData(){
+  const blob=new Blob([JSON.stringify({items:db.items,categories:db.categories,genres:db.genres,topics:db.topics},null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='patoteca_backup_'+today()+'.json'; a.click();
+}
+function importData(e){
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(data.items){
+        // Anti-duplicate merge
+        const existingKeys=new Set(db.items.map(i=>normalizeTitle(i.title)));
+        const newItems=data.items.filter(i=>!existingKeys.has(normalizeTitle(i.title)));
+        db.items=[...db.items,...newItems];
+        if(data.categories) db.categories=data.categories;
+        if(data.genres) db.genres=data.genres;
+        if(data.topics) db.topics=data.topics;
+        saveLocal(); renderAll(); showToast(`✅ Importados ${newItems.length} nuevos ítems`);
+      }else showToast('❌ Formato incorrecto');
+    }catch{showToast('❌ Error al leer');}
+  };
+  reader.readAsText(file); e.target.value='';
+}
+
+// ══════════════════════════════════════════════
+// MODAL HELPERS
+// ══════════════════════════════════════════════
+function openModal(id){ document.getElementById(id).classList.add('open'); document.body.style.overflow='hidden'; }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); document.body.style.overflow=''; }
+function closeModalIfBg(e,id){ if(e.target===e.currentTarget) closeModal(id); }
+document.querySelectorAll('input[name="fStatus"]').forEach(r=>{
+  r.addEventListener('change',function(){ document.getElementById('seenFields').style.display=this.value==='seen'?'block':'none'; });
+});
+function setCategory(cat){ currentCategory=cat; renderAll(); }
+function setSort(s,btn){ currentSort=s; document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderCards(); }
+
+// ══════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function today(){ return new Date().toISOString().split('T')[0]; }
+function fmtDate(d){ if(!d)return ''; const[y,m,day]=d.split('-'); const mo=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic']; return `${parseInt(day)} ${mo[parseInt(m)-1]} ${y}`; }
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function showToast(msg,dur=2500){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),dur); }
+
+// ══════════════════════════════════════════════
+// SEED DATA — injected below
+// ══════════════════════════════════════════════
+const SEED_ITEMS = [{"id": "493de27a", "title": "Les gardiennes", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "29d725fe", "title": "Perdí mi cuerpo", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "5a24de48", "title": "Dirigidas por mujeres", "category": "pelis", "recommender": "", "link": "https://cinemania.20minutos.es/noticias/30-peliculas-dirigidas-mujeres-ver-online/?fbclid=IwAR19BgvsgpKENIVLezm6XbTnmLpXC3OY99jknGGkQEUYgRUEdca7TrsO8BE", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Feminismo"], "genres": []}, {"id": "2abf5df0", "title": "Tallulah", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "3bc418ff", "title": "Hamilton", "category": "pelis", "recommender": "", "link": "https://streamp1ay.cc/hi0gwpttnzn5", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "348f470a", "title": "Oro blanco", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "d1ed36d3", "title": "Yo soy Sam", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "a5776028", "title": "Papicha", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Racismo y diversidad"], "genres": ["Drama"]}, {"id": "0c4281ef", "title": "Cáscaras vacías", "category": "pelis", "recommender": "", "link": "https://vimeo.com/461417024/4b8b484a44", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "39ffa497", "title": "Yo también", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "69c6431c", "title": "Sylvie's Love", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": ["Drama"]}, {"id": "893ead87", "title": "Ghibli (mejores películas)", "category": "pelis", "recommender": "", "link": "https://www.fotogramas.es/noticias-cine/gmp31118988/ghibli-mejores-peliculas-miyazaki-takahata-netflix/", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "06448899", "title": "El agente topo", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "f8b74af9", "title": "Princess Cyd", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": ["Drama"]}, {"id": "376a2e14", "title": "Snapshots", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": ["Drama"]}, {"id": "370c6e76", "title": "Fingersmith", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": ["Drama"]}, {"id": "34b9bf58", "title": "Professor Marston", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "2b04bbaa", "title": "Soul", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "0da0934c", "title": "Explota explota", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "6ff76a5d", "title": "Iré donde tú vayas", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "21aa644a", "title": "No estoy loca", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "990acfd3", "title": "Alias Grace", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "8d1a7920", "title": "Historias lamentables (Javier Fesser)", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "d53e1c01", "title": "En qué estaban pensando", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "4a3ead4b", "title": "No soy un hombre fácil", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "11d9f5c4", "title": "84 Charing Cross Road", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "a8aa4c7f", "title": "Entre lobos", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "5e6d382d", "title": "The World to Come", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": ["Drama"]}, {"id": "e4d5b37e", "title": "Mi querida señorita", "category": "pelis", "recommender": "Marta", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "b93eac76", "title": "Este niño necesita aire fresco", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "356bbf3f", "title": "El príncipe de las mareas", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "9a274491", "title": "Las maestras de la República", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Feminismo", "Guerra civil y franquismo"], "genres": ["Historia o hechos reales"]}, {"id": "06e402f9", "title": "El secreto de las abejas", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "29b71ac8", "title": "Hijos de los hombres", "category": "pelis", "recommender": "Fernando de la Riva", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "74be008d", "title": "Lo que el pulpo me enseñó", "category": "docus", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "Documental ver ya!! No es de llorar mucho", "addedDate": "2026-05-29", "topics": ["Salud mental y discapacidad"], "genres": ["Historia o hechos reales"]}, {"id": "47ebcdbc", "title": "Nader y Simin, una separación", "category": "pelis", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "c7c675ff", "title": "My Beautiful Baghdad", "category": "pelis", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Racismo y diversidad"], "genres": ["Historia o hechos reales"]}, {"id": "d5be3a4b", "title": "El poder del perro", "category": "pelis", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "No es de llorar pero tampoco comedia", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "95cc1fac", "title": "Minari", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "bef9a957", "title": "Canción de cuna", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "5cd14b22", "title": "La diligencia", "category": "cine_clasico", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "e5529a28", "title": "La escopeta nacional", "category": "cine_clasico", "recommender": "Carlos", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "3bb7a342", "title": "Yo, Daniel Blake", "category": "pelis", "recommender": "Flor", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "919ab2fa", "title": "Tierra y libertad", "category": "pelis", "recommender": "Flor", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Guerra civil y franquismo"], "genres": ["Historia o hechos reales"]}, {"id": "518f6213", "title": "En los márgenes", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "eldiario.es, rodada en Tetuán", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "c633dcce", "title": "As bestas", "category": "pelis", "recommender": "Flor", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "aeb2dd88", "title": "Cinco lobitos", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "8fba4940", "title": "Alcarrás", "category": "pelis", "recommender": "Flor", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "fa89d9e2", "title": "Mar adentro", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "d0e1bab9", "title": "Nebraska", "category": "pelis", "recommender": "Carlos", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "18088daf", "title": "Las cartas perdidas", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "1d50ba73", "title": "La lista de Schindler", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "3d691ddc", "title": "In the mood for love", "category": "pelis", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "Peli favorita de Asun, dramón que te cagas", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "7228ddc7", "title": "Me siento extraña", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "e5ace77e", "title": "El olivo", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "104129f4", "title": "Las pelotaris", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas", "Feminismo"], "genres": ["Historia o hechos reales"]}, {"id": "20fa801e", "title": "Capote", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "0bc956ce", "title": "Simone, la mujer del siglo", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Feminismo"], "genres": ["Historia o hechos reales"]}, {"id": "4f99950d", "title": "El regreso de Martín Luna", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "4f4a2389", "title": "Teresa (Blanca Portillo)", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "eb467c78", "title": "El maestro que prometió ver el mar", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "80c28f0c", "title": "Parásitos", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "1f68d579", "title": "Goodbye Lenin", "category": "pelis", "recommender": "OEM", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "67b3b383", "title": "Paris is Burning", "category": "pelis", "recommender": "OEM", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "58960a0d", "title": "Noche en la tierra", "category": "pelis", "recommender": "OEM", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "dcda51d3", "title": "Teléfono rojo", "category": "cine_clasico", "recommender": "OEM", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "dd9181bd", "title": "Tea Rooms", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Feminismo"], "genres": ["Historia o hechos reales"]}, {"id": "40664a12", "title": "8 montañas", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "ae668fd6", "title": "La lengua de las mariposas", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "99939a84", "title": "Sound of Metal", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Salud mental y discapacidad"], "genres": ["Drama"]}, {"id": "0efe13f0", "title": "La naranja mecánica", "category": "cine_clasico", "recommender": "Aurora", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Miedo"]}, {"id": "5ce4cd33", "title": "Ex machina", "category": "pelis", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "f3d29ef2", "title": "Matilda", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "5c80612f", "title": "Hive (Colmena)", "category": "pelis", "recommender": "Espe", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "64db30cd", "title": "Beauty", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": []}, {"id": "b0ea2629", "title": "Felicitaciones por la boda", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": ["Comedia"]}, {"id": "64db6dca", "title": "Am I OK?", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": ["Comedia"]}, {"id": "78b8c361", "title": "Tár", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "65630443", "title": "Te llevo en el alma", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": ["Drama"]}, {"id": "70465bff", "title": "One Love", "category": "pelis", "recommender": "EOM", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Racismo y diversidad"], "genres": ["Historia o hechos reales"]}, {"id": "38fbed9a", "title": "Casa en llamas", "category": "pelis", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "c911ce59", "title": "Batallón Triple 8", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "5cd0a618", "title": "Carlos Saura 1975", "category": "cine_clasico", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "c5fabba5", "title": "María Antonieta (Coppola)", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "9f694d10", "title": "Monk", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "8eb403bb", "title": "The Morning Show", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "Ver desde 2x10", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "bff208a2", "title": "Ellas dan el golpe", "category": "series", "recommender": "Luz", "link": "", "status": "pending", "seenDate": "", "note": "Hasta temporada 1", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "dbcb3cf0", "title": "Never Have I Ever", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "6e8fb6df", "title": "In the Dark", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "4cb2197d", "title": "Call Me Kat", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "166921dc", "title": "BoJack Horseman", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "c0dce6e6", "title": "Vida perfecta temporada 2", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "f811114c", "title": "I May Destroy You", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "ceeed769", "title": "Las del hockey", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "86752f05", "title": "Broad City", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "6c165cae", "title": "Little Fires Everywhere", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "6de902b6", "title": "The Bold Type", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "6b8f6148", "title": "This Is Us", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "0c4be4d8", "title": "Estoy vivo", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "e789d924", "title": "Parot doctrina", "category": "series", "recommender": "Merche", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "044af986", "title": "The Nevers", "category": "series", "recommender": "Merche", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "855bdc23", "title": "El inocente", "category": "series", "recommender": "Merche", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Suspense"]}, {"id": "76dd050f", "title": "Devs", "category": "series", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Suspense"]}, {"id": "bac91297", "title": "Sweet Tooth", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "b0819b84", "title": "Reyes de la noche", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "9311b177", "title": "Gentleman Jack", "category": "series", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": ["Drama"]}, {"id": "e5f8ab09", "title": "Los chicos del bádminton", "category": "series", "recommender": "Luz", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "aa9fbc63", "title": "Los Durrell", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "3add7bf3", "title": "Heridas abiertas", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "a0253d52", "title": "Top of the Lake", "category": "series", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Suspense"]}, {"id": "1a8880a6", "title": "Sucesión", "category": "series", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "208d6629", "title": "Estación 11", "category": "series", "recommender": "Amalia", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "8ec913a8", "title": "Madam CJ Walker", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Racismo y diversidad"], "genres": ["Historia o hechos reales"]}, {"id": "886cc16a", "title": "La doctora Foster temporada 2", "category": "series", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "78094d07", "title": "As We See It (autismo)", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Salud mental y discapacidad"], "genres": ["Drama"]}, {"id": "98ab5478", "title": "Cómo meterse en un jardín", "category": "series", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "18ba6135", "title": "Spiderman animación", "category": "series", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "7c71850f", "title": "Love, Death and Robots", "category": "series", "recommender": "Inés", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "7bba5e19", "title": "Intimidad", "category": "series", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "b5d65648", "title": "Heartstopper", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "250e6481", "title": "The Boys", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "ecdf8c45", "title": "Watchmen", "category": "series", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "7190d12c", "title": "Patria", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "0e1669bd", "title": "Excepción", "category": "series", "recommender": "Inés de Araoz", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "c1cdfbc3", "title": "White Lotus", "category": "series", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "14766b4a", "title": "Murdoch Mysteries", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Suspense"]}, {"id": "0d6cb882", "title": "Solo asesinatos en el edificio", "category": "series", "recommender": "Fermín", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "f0f16be8", "title": "Versalles y el Rey Sol", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "62fae63c", "title": "Dark", "category": "series", "recommender": "Fermín", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Suspense"]}, {"id": "abd1fa3b", "title": "Aquellos maravillosos años", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "236df92c", "title": "Orphan Black: Echoes", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "15b492d3", "title": "Old Enough", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "09f2a81f", "title": "The Regime", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "Con Kate Winslet", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "5a835fc7", "title": "Eric", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "b91da4b3", "title": "Bellas artes", "category": "series", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "45f6cfa9", "title": "El encargado", "category": "series", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "af99f0bf", "title": "A dos metros bajo tierra", "category": "series", "recommender": "Raquel", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "c959d0ed", "title": "Somebody Somewhere", "category": "series", "recommender": "Nikki", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "b29e651a", "title": "El asalto al banco central", "category": "series", "recommender": "Ama", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Suspense"]}, {"id": "4a7a4c1f", "title": "Gourmet samurái", "category": "series", "recommender": "Aza", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "f16b75d3", "title": "Adolescence", "category": "series", "recommender": "Asun", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Salud mental y discapacidad"], "genres": ["Drama"]}, {"id": "97cff984", "title": "La llegada de la democracia", "category": "series", "recommender": "Flor", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "84b2bc1f", "title": "Act", "category": "series", "recommender": "Rubén", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "c11abb39", "title": "Día a día", "category": "series", "recommender": "Marta", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "212aa46f", "title": "Envidiosa", "category": "series", "recommender": "Marta", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "0561af7e", "title": "Bulos y Ciencias", "category": "libros", "recommender": "", "link": "https://twitter.com/alexandrelopez/status/1301079483252912134?s=19", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "8397f7d2", "title": "Juan Eslava Galán (obras)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "e740afbb", "title": "Dos amigas", "category": "libros", "recommender": "Flor", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "6b4b0a7f", "title": "La solterona", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "2e6b0a7f", "title": "La edad de la inocencia", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "478e3f57", "title": "La heredera", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "e149561d", "title": "Últimas noticias de la duquesa (Caroline Blackburn)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "b01c043c", "title": "El juego de Ender (Orson Scott)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "a3052a27", "title": "El maestro cantar (Orson Scott)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": []}, {"id": "6bfdafd3", "title": "Graham Greene (obras)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "a7903f61", "title": "Pensamiento mágico", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "bd4be3cb", "title": "Belén Gopegui (obras)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "5e92c1b3", "title": "La ciudad de los cuidados", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "8fc6d340", "title": "HG Wells: Ruedas de fortuna", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "e442abfa", "title": "A la salud de los muertos (Vinciane Despret)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "64cbd086", "title": "Rosa Chacel: Alcancía", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "65abd105", "title": "Calibán y la bruja", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "bded66c8", "title": "Rebeldes periféricas", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "8b5f807a", "title": "Ilan Pappé (obras)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "4337be90", "title": "Tom Sharpe (obras)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "998f6897", "title": "Hannah Arendt (obras)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "b49ceb84", "title": "Stefan Zweig (obras)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "5631833b", "title": "Donde nadie te encuentre (Alicia Giménez)", "category": "libros", "recommender": "Mónica", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Suspense"]}, {"id": "92508513", "title": "Roland Barthes (obras)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "00b7b682", "title": "La península de las casas vacías (David Uclés)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "dff0b8db", "title": "La España de las piscinas (Jorge Dioni)", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "5ea86ba5", "title": "Rosa Chacel: Maravillas", "category": "libros", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "0ba4ee27", "title": "Ética amorosa del amor libertario", "category": "libros", "recommender": "Deforme Semanal", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": []}, {"id": "724b2f06", "title": "Qué fue de Delia", "category": "libros", "recommender": "Deforme Semanal", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "4a45791c", "title": "Dispara, yo ya estoy muerto (Almudena Grandes)", "category": "libros", "recommender": "Mar", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "13547242", "title": "Dime quién soy (María Dueñas)", "category": "libros", "recommender": "Mar", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "1a238a2d", "title": "La Biblia de barro (Julia Navarro)", "category": "libros", "recommender": "Mar", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "7a0541f9", "title": "La trilogía del Baztán", "category": "libros", "recommender": "Mar", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Suspense"]}, {"id": "c4309ea7", "title": "La trilogía de la ciudad blanca", "category": "libros", "recommender": "Mar", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Suspense"]}, {"id": "1f1e65bc", "title": "La villa de las velas", "category": "libros", "recommender": "Mar", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "4b75616a", "title": "El método Arrieta", "category": "docus", "recommender": "", "link": "https://www.filmin.es/pelicula/el-metodo-arrieta", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "195cec3d", "title": "Capitalismo de la vigilancia (Shoshana Zuboff)", "category": "docus", "recommender": "", "link": "https://youtu.be/V1iKDuYhXn8", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "d7440585", "title": "Wolfpack", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Salud mental y discapacidad"], "genres": []}, {"id": "ab66fc90", "title": "También somos mujeres", "category": "docus", "recommender": "Óscar", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Feminismo", "Racismo y diversidad"], "genres": []}, {"id": "ce3c6912", "title": "Josephine Baker: Luces en la noche", "category": "docus", "recommender": "", "link": "https://www.rtve.es/play/videos/luces-en-la-noche/josephine-baker/2739038/", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Racismo y diversidad"], "genres": ["Historia o hechos reales"]}, {"id": "be097603", "title": "Rocío (Fernando Ruiz Vergara, 1980)", "category": "docus", "recommender": "Concostrina", "link": "https://youtu.be/vXJfp4iFAic?si=LVG116r35koh1IJU", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Guerra civil y franquismo"], "genres": ["Historia o hechos reales"]}, {"id": "ec3105e7", "title": "Provincia 53", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Racismo y diversidad"], "genres": []}, {"id": "aad65ad8", "title": "Buscar documental Protectorado mujeres franquismo", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Feminismo", "Guerra civil y franquismo", "Salud mental y discapacidad"], "genres": ["Historia o hechos reales"]}, {"id": "718029be", "title": "Quién se ríe ahora", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "2253c705", "title": "Documentales Argentina (Tiempo Argentino)", "category": "docus", "recommender": "", "link": "https://www.tiempoar.com.ar/espectaculos/cuatro-documentales-sobre-el-peronismo-para-ponerle-calor-y-color-al-invierno/", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Racismo y diversidad", "Salud mental y discapacidad", "Argentina y peronismo"], "genres": ["Historia o hechos reales"]}, {"id": "ffefe3c4", "title": "Urraca (cazador de rojos)", "category": "docus", "recommender": "", "link": "https://www.rtve.es/play/videos/somos-documentales/urraca-cazador-rojos/6988014/", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Guerra civil y franquismo"], "genres": ["Historia o hechos reales"]}, {"id": "8124e958", "title": "Qué es el peronismo", "category": "docus", "recommender": "", "link": "https://www.youtube.com/watch?v=KT1YWFBomVc", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Racismo y diversidad", "Argentina y peronismo"], "genres": ["Historia o hechos reales"]}, {"id": "ff1c63ae", "title": "Documental sobre Eleanor Roosevelt", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Salud mental y discapacidad"], "genres": ["Historia o hechos reales"]}, {"id": "8b545451", "title": "Cigarreras RTVE", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Feminismo"], "genres": ["Historia o hechos reales"]}, {"id": "6863cb6c", "title": "La ciudad es nuestra", "category": "docus", "recommender": "", "link": "https://www.youtube.com/watch?v=RxpeFxtQXLs", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "8e87e28a", "title": "TVE: Memoria recobrada", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Guerra civil y franquismo"], "genres": ["Historia o hechos reales"]}, {"id": "ca0122df", "title": "Nuestro culpable 1937", "category": "docus", "recommender": "", "link": "https://youtu.be/de_lNuk8YpY?si=xD9r7rmXySl_QxBY", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Guerra civil y franquismo"], "genres": ["Historia o hechos reales"]}, {"id": "0a39d82b", "title": "El patronato (La 2)", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Guerra civil y franquismo"], "genres": ["Historia o hechos reales"]}, {"id": "6b1c242b", "title": "26 diciembre", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "3f0c017f", "title": "Leales e insurgentes: mujeres y patrimonio en la Guerra Civil", "category": "docus", "recommender": "", "link": "https://youtu.be/clnZfuFEpk0?si=a939XBv_1G4CxiSA", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Feminismo", "Guerra civil y franquismo"], "genres": ["Historia o hechos reales"]}, {"id": "a519b757", "title": "Arañar la tierra", "category": "docus", "recommender": "", "link": "https://youtu.be/1HU7UHmr7fA?si=hAtusym_KFCo2Xev", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Guerra civil y franquismo"], "genres": ["Historia o hechos reales"]}, {"id": "fe6c1750", "title": "Documental Almudena Grandes", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Salud mental y discapacidad"], "genres": ["Historia o hechos reales"]}, {"id": "447dd5bc", "title": "Detrás del instante (RTVE)", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "ff9ff9f9", "title": "Carmen Díez de Rivera (RTVE o YouTube)", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Guerra civil y franquismo"], "genres": ["Historia o hechos reales"]}, {"id": "da565e74", "title": "A flor de tierra: primeras exhumaciones", "category": "docus", "recommender": "Concostrina", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Guerra civil y franquismo"], "genres": ["Historia o hechos reales"]}, {"id": "3ad38fce", "title": "La trampa del clic", "category": "docus", "recommender": "Aurora", "link": "https://www.rtve.es/play/videos/somos-documentales/trampa-clic/16325219/", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "d6925768", "title": "De interés general: un barrio por un parque", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "0a19fc1d", "title": "Los niños perdidos del franquismo", "category": "docus", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Guerra civil y franquismo"], "genres": ["Historia o hechos reales"]}, {"id": "6dee7b35", "title": "Tamayo: cómo cazar un monstruo", "category": "docus", "recommender": "Rubén", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "5fcce905", "title": "El mal del cerebro", "category": "docus", "recommender": "Rubén", "link": "https://youtu.be/nXq58fXb7sw?si=vZGxsNtypuNa8pka", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Salud mental y discapacidad"], "genres": []}, {"id": "023695cc", "title": "Un amor de verano", "category": "pelis", "recommender": "Aurora", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": ["Drama"]}, {"id": "860d9c22", "title": "Por todo lo alto", "category": "pelis", "recommender": "Flor", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "92edc2b3", "title": "El buen patrón", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "cfcb68c0", "title": "400 golpes", "category": "cine_clasico", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "ccf76c2b", "title": "El planeta de los simios", "category": "pelis", "recommender": "Taller de cine", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "2889778e", "title": "Nouvelle Vague", "category": "cine_clasico", "recommender": "Taller de cine", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "92ddaa0d", "title": "El marciano", "category": "pelis", "recommender": "Rubén", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "a2fa2ef1", "title": "No other land", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "40b719ac", "title": "La escalera del caracol", "category": "pelis", "recommender": "Taller de cine", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Miedo"]}, {"id": "2508793e", "title": "Arde Madrid", "category": "series", "recommender": "Paco León", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "5e4f7bc1", "title": "La historia oficial", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Guerra civil y franquismo"], "genres": ["Historia o hechos reales"]}, {"id": "d6d68f11", "title": "Cómo volar un oleoducto", "category": "pelis", "recommender": "EOM", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "35a28dda", "title": "La trinchera infinita", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Guerra civil y franquismo"], "genres": ["Drama"]}, {"id": "fe3d6dda", "title": "El paciente inglés", "category": "pelis", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "39c99ac5", "title": "Pelis queer en RTVE", "category": "pelis", "recommender": "", "link": "https://www.instagram.com/p/DVlkXYaDJmo/?img_index=2&igsh=YTJ1cHFqc25vNmVi", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["LGTBIQ+"], "genres": []}, {"id": "2c84611f", "title": "Una guerra tras otra", "category": "series", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}, {"id": "be5600ba", "title": "Bad sister", "category": "cine_clasico", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "YouTube. Bette Davis", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "267d3f78", "title": "Mujeres (George Cukor)", "category": "cine_clasico", "recommender": "", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Feminismo"], "genres": ["Comedia"]}, {"id": "930681ac", "title": "La tribu", "category": "pelis", "recommender": "Marta", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Comedia"]}, {"id": "19564deb", "title": "Enora Holmes 3", "category": "pelis", "recommender": "Marta", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "195ac3a8", "title": "El varón de Arizona", "category": "cine_clasico", "recommender": "Lorencine", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": []}, {"id": "352e0463", "title": "West Side Story", "category": "pelis", "recommender": "Marta", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Drama"]}, {"id": "2b7ec106", "title": "Robot salvaje", "category": "pelis", "recommender": "Valen", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": [], "genres": ["Acción, aventura o fantasía"]}, {"id": "49b0ad5f", "title": "La hija pequeña", "category": "pelis", "recommender": "Judith Tiral", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": ["Drama"]}, {"id": "a418e404", "title": "The Handmaiden", "category": "pelis", "recommender": "Judith Tural", "link": "", "status": "pending", "seenDate": "", "note": "", "addedDate": "2026-05-29", "topics": ["Lésbicas"], "genres": ["Drama"]}, {"id": "9e536c7b", "title": "Cómo cazar a un monstruo", "category": "docus", "recommender": "Rubén", "link": "", "status": "seen", "seenDate": "2026-05-25", "note": "Impresionante!!", "addedDate": "2026-05-29", "topics": [], "genres": ["Historia o hechos reales"]}];
+
+// ══════════════════════════════════════════════
+// STATS
+// ══════════════════════════════════════════════
+let statsYear = null;
+
+function openStats(){
+  const seenItems = db.items.filter(i=>i.status==='seen' && i.seenDate);
+  const years = [...new Set(seenItems.map(i=>i.seenDate.slice(0,4)))].sort((a,b)=>b-a);
+  if(!statsYear || !years.includes(statsYear)) statsYear = years[0] || null;
+  renderStatsContent(seenItems, years);
+  openModal('statsModal');
+}
+
+function renderStatsContent(seenItems, years){
+  const MONTHS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  const total = db.items.length;
+  const totalSeen = seenItems.length;
+  const totalPending = db.items.filter(i=>i.status==='pending').length;
+
+  // Global summary cards
+  let html = `<div class="stats-grid">
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total en la Patoteca</div></div>
+    <div class="stat-card"><div class="stat-num">${totalSeen}</div><div class="stat-label">Vistos / Leídos</div></div>
+    <div class="stat-card"><div class="stat-num">${totalPending}</div><div class="stat-label">Pendientes</div></div>
+    <div class="stat-card"><div class="stat-num">${years.length||0}</div><div class="stat-label">Años con actividad</div></div>
+  </div>`;
+
+  // Category breakdown (all seen)
+  html += `<div class="stats-section-title">🎬 Por categoría (vistos)</div><div class="cat-bars">`;
+  const catCounts = {};
+  seenItems.forEach(i=>{ catCounts[i.category]=(catCounts[i.category]||0)+1; });
+  const maxCat = Math.max(...Object.values(catCounts), 1);
+  const sortedCats = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]);
+  sortedCats.forEach(([catId, cnt])=>{
+    const catObj = db.categories.find(c=>c.id===catId)||{emoji:'📌',label:catId};
+    const pct = Math.round((cnt/maxCat)*100);
+    html += `<div class="cat-row">
+      <div class="cat-name">${catObj.emoji} ${catObj.label}</div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill" style="width:${Math.max(pct,8)}%"><span>${cnt}</span></div></div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Topic breakdown
+  if(db.topics.length){
+    html += `<div class="stats-section-title">🏷️ Por tema (vistos)</div>`;
+    const topicCounts = {};
+    seenItems.forEach(i=>(i.topics||[]).forEach(t=>{ topicCounts[t]=(topicCounts[t]||0)+1; }));
+    const sortedTopics = db.topics.map(t=>([t, topicCounts[t]||0])).sort((a,b)=>b[1]-a[1]);
+    sortedTopics.forEach(([t,cnt])=>{
+      html += `<div class="topic-stat-row"><span class="topic-stat-name">${t}</span><span class="topic-stat-num">${cnt}</span></div>`;
+    });
+  }
+
+  // Year selector + monthly chart
+  if(years.length){
+    html += `<div class="stats-section-title">📅 Por mes</div>`;
+    html += `<div class="stats-year-selector">`;
+    years.forEach(y=>{
+      html += `<button class="year-btn ${y===statsYear?'active':''}" onclick="setStatsYear('${y}')">${y}</button>`;
+    });
+    html += `</div>`;
+
+    if(statsYear){
+      const yearItems = seenItems.filter(i=>i.seenDate.startsWith(statsYear));
+      const monthlyCounts = Array(12).fill(0);
+      const monthlyByCategory = Array(12).fill(null).map(()=>({}));
+      yearItems.forEach(i=>{
+        const m = parseInt(i.seenDate.slice(5,7))-1;
+        monthlyCounts[m]++;
+        monthlyByCategory[m][i.category]=(monthlyByCategory[m][i.category]||0)+1;
+      });
+      const maxMonth = Math.max(...monthlyCounts, 1);
+      const yearTotal = yearItems.length;
+
+      html += `<div style="font-size:13px;font-weight:700;color:var(--text-light);margin-bottom:10px">Total en ${statsYear}: <strong style="color:var(--orange-dark)">${yearTotal}</strong></div>`;
+      html += `<div class="month-bars">`;
+      monthlyCounts.forEach((cnt,m)=>{
+        const pct = Math.round((cnt/maxMonth)*100);
+        // Build tooltip: category breakdown for this month
+        const catDetail = Object.entries(monthlyByCategory[m])
+          .sort((a,b)=>b[1]-a[1])
+          .map(([cid,n])=>{ const co=db.categories.find(c=>c.id===cid)||{emoji:'📌'}; return `${co.emoji}×${n}`; })
+          .join(' ');
+        const inside = pct > 25;
+        html += `<div class="month-row">
+          <div class="month-name">${MONTHS[m]}</div>
+          <div class="month-bar-wrap" title="${catDetail||'ninguno'}">
+            <div class="month-bar-fill ${cnt===0?'zero':''}" style="width:${cnt===0?'0':Math.max(pct,6)}%">
+              ${inside && cnt>0 ? `<span class="month-count">${cnt}${catDetail?' · '+catDetail:''}</span>` : ''}
+            </div>
+            ${!inside && cnt>0 ? `<span class="month-count outside">${cnt}${catDetail?' · '+catDetail:''}</span>` : ''}
+            ${cnt===0 ? `<span class="month-count outside" style="color:#ccc">—</span>` : ''}
+          </div>
+        </div>`;
+      });
+      html += `</div>`;
+    }
+  } else {
+    html += `<div class="empty-state" style="padding:30px 0"><div class="empty-duck">🐥</div><h3>Aún sin obras vistas</h3><p>Marca algo como visto para ver tus estadísticas</p></div>`;
+  }
+
+  document.getElementById('statsContent').innerHTML = html;
+}
+
+function setStatsYear(y){
+  statsYear = y;
+  const seenItems = db.items.filter(i=>i.status==='seen' && i.seenDate);
+  const years = [...new Set(seenItems.map(i=>i.seenDate.slice(0,4)))].sort((a,b)=>b-a);
+  renderStatsContent(seenItems, years);
+}
+
+// ══════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════
+loadLocal();
+renderAll();
+if(db.settings.token && db.settings.gistId){
+  // Ya configurado: carga desde Gist (tiene prioridad sobre local)
+  loadFromGist();
+} else if(db.settings.token && !db.settings.gistId){
+  // Tiene token pero aún no hay Gist: créalo y sube todo ahora
+  syncGist();
+} else {
+  // Sin token: avisa claramente
+  setSyncStatus('⚠️ Configura tu token en ⚙️ para no perder tus datos');
+}
+</script>
+</body>
+</html>
