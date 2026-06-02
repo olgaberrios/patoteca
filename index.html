@@ -366,6 +366,14 @@
       </div>
     </div>
     <div class="settings-section">
+      <h3>🎭 Géneros</h3>
+      <div class="manage-list" id="genreManageList"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <input type="text" id="newGenreLabel" placeholder="Nuevo género…" style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--orange-mid);font-family:var(--font-body);font-size:14px"/>
+        <button class="btn-sm" onclick="addGenre()">＋ Añadir</button>
+      </div>
+    </div>
+    <div class="settings-section">
       <h3>🏷️ Temas</h3>
       <div class="manage-list" id="topicManageList"></div>
       <div style="display:flex;gap:8px;margin-top:10px">
@@ -709,6 +717,7 @@ function openSettings(){
   if(db.settings.token&&db.settings.gistId){div.className='gist-status ok';div.innerHTML='<span class="dot green"></span>Configurado';}
   else{div.className='gist-status idle';div.innerHTML='<span class="dot grey"></span>Sin configurar';}
   renderCatManage();
+  renderGenreManage();
   renderTopicManage();
   openModal('settingsModal');
 }
@@ -752,6 +761,57 @@ function deleteCategory(i){
   }
   db.categories.splice(i,1);
   saveLocal(); renderCatManage(); renderTabs();
+}
+
+// ══════════════════════════════════════════════
+// GENRE MANAGEMENT
+// ══════════════════════════════════════════════
+function renderGenreManage(){
+  const el=document.getElementById('genreManageList');
+  el.innerHTML=db.genres.map((g,i)=>`
+    <div class="manage-item">
+      <span style="flex:1;font-weight:600;font-size:14px">${g}</span>
+      <button class="btn-sm" onclick="editGenre(${i})" style="margin-right:4px">✏️</button>
+      <button class="btn-sm" onclick="deleteGenre(${i})" style="color:#CC3333;border-color:#FFCCCC">🗑️</button>
+    </div>`).join('');
+}
+function addGenre(){
+  const label=document.getElementById('newGenreLabel').value.trim();
+  if(!label)return;
+  if(db.genres.includes(label)){showToast('⚠️ Ya existe');return;}
+  // Insert alphabetically
+  db.genres.push(label);
+  db.genres.sort((a,b)=>a.localeCompare(b,'es'));
+  document.getElementById('newGenreLabel').value='';
+  saveLocal(); renderGenreManage(); renderFilters();
+  showToast('✅ Género añadido');
+}
+function editGenre(i){
+  const current=db.genres[i];
+  const newName=prompt('Editar género:',current);
+  if(!newName||newName.trim()===current)return;
+  const trimmed=newName.trim();
+  if(db.genres.includes(trimmed)){showToast('⚠️ Ya existe');return;}
+  // Update all items that have this genre
+  db.items.forEach(item=>{
+    if(item.genres) item.genres=item.genres.map(g=>g===current?trimmed:g);
+  });
+  db.genres[i]=trimmed;
+  db.genres.sort((a,b)=>a.localeCompare(b,'es'));
+  saveLocal(); renderGenreManage(); renderFilters(); renderCards();
+  showToast('✅ Género actualizado');
+}
+function deleteGenre(i){
+  const genre=db.genres[i];
+  const affected=db.items.filter(item=>(item.genres||[]).includes(genre)).length;
+  if(affected>0){
+    if(!confirm(`Hay ${affected} ítem(s) con el género "${genre}". ¿Eliminar igualmente?
+(Se quitará de esos ítems)`))return;
+    db.items.forEach(item=>{ if(item.genres) item.genres=item.genres.filter(g=>g!==genre); });
+  }
+  db.genres.splice(i,1);
+  saveLocal(); renderGenreManage(); renderFilters(); renderCards();
+  showToast('🗑️ Género eliminado');
 }
 
 // ══════════════════════════════════════════════
