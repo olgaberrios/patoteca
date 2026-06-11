@@ -254,6 +254,14 @@
       <option value="">Todos</option>
     </select>
   </div>
+  <div class="filter-group" id="bookTypeFilter" style="display:none">
+    <span class="filter-label">Tipo</span>
+    <select class="filter-select" id="filterBookType" onchange="renderCards()">
+      <option value="">Todos</option>
+      <option value="libro">📕 Libro</option>
+      <option value="audiolibro">🎧 Audiolibro</option>
+    </select>
+  </div>
   <div class="filter-group">
     <span class="filter-label">Recomendó</span>
     <select class="filter-select" id="filterRecommender" onchange="renderCards()">
@@ -312,6 +320,15 @@
       <div class="form-group">
         <label>Enlace</label>
         <input type="url" id="fLink" placeholder="https://…"/>
+      </div>
+    </div>
+    <div class="form-group" id="bookTypeGroup" style="display:none">
+      <label>Tipo</label>
+      <div class="status-toggle">
+        <input type="radio" name="fBookType" id="bBook" value="libro" checked/>
+        <label for="bBook" class="pending-lbl">📕 Libro</label>
+        <input type="radio" name="fBookType" id="bAudio" value="audiolibro"/>
+        <label for="bAudio" class="watching-lbl">🎧 Audiolibro</label>
       </div>
     </div>
     <div class="form-group">
@@ -597,6 +614,8 @@ function renderCards(){
     if(statusF&&item.status!==statusF)return false;
     if(genreF&&!(item.genres||[]).includes(genreF))return false;
     if(topicF&&!(item.topics||[]).includes(topicF))return false;
+    const bookTypeF=document.getElementById('filterBookType').value;
+    if(bookTypeF&&item.category==='libros'&&(item.bookType||'libro')!==bookTypeF)return false;
     if(recF&&item.recommender!==recF)return false;
     if(search&&!item.title.toLowerCase().includes(search)&&
        !(item.recommender||'').toLowerCase().includes(search)&&
@@ -641,7 +660,7 @@ function renderCards(){
         <span class="card-status ${item.status}">${item.status==='seen'?'✅ Visto':item.status==='watching'?'▶️ En curso':item.status==='paused'?'⏸️ En pausa':item.status==='abandoned'?'🛑 Abandonado':'⏳ Pendiente'}</span>
       </div>
       <div class="card-meta">
-        <span class="card-tag">${catObj.emoji} ${catObj.label}</span>
+        <span class="card-tag">${catObj.emoji} ${catObj.label}${item.bookType==='audiolibro'?' 🎧':item.category==='libros'?' 📕':''}</span>
         ${(item.genres||[]).map(g=>`<span class="card-tag genre">🎭 ${esc(g)}</span>`).join('')}
         ${item.recommender?`<span class="card-tag recommender">👤 ${esc(item.recommender)}</span>`:''}
         ${topicsHtml}
@@ -660,6 +679,11 @@ function renderCards(){
 function buildCategorySelect(selectedId){
   const sel=document.getElementById('fCategory');
   sel.innerHTML=db.categories.map(c=>`<option value="${c.id}" ${c.id===selectedId?'selected':''}>${c.emoji} ${c.label}</option>`).join('');
+  toggleBookTypeGroup(selectedId);
+  sel.onchange = function(){ toggleBookTypeGroup(this.value); };
+}
+function toggleBookTypeGroup(catId){
+  document.getElementById('bookTypeGroup').style.display = catId==='libros' ? 'block' : 'none';
 }
 function buildGenrePicker(selectedGenres){
   const arr = Array.isArray(selectedGenres) ? selectedGenres : (selectedGenres ? [selectedGenres] : []);
@@ -703,6 +727,10 @@ function openEditModal(id){
   buildCategorySelect(item.category);
   buildGenrePicker(Array.isArray(item.genres) ? item.genres : (item.genre ? [item.genre] : []));
   buildTopicsPicker(item.topics||[]);
+  if(item.category==='libros'){
+    const bt = item.bookType||'libro';
+    document.getElementById(bt==='audiolibro'?'bAudio':'bBook').checked=true;
+  }
   document.getElementById('fRecommender').value=item.recommender||'';
   document.getElementById('fLink').value=item.link||'';
   document.getElementById(item.status==='seen'?'sSeen':'sPending').checked=true;
@@ -724,6 +752,9 @@ function saveItem(){
     recommender:document.getElementById('fRecommender').value.trim(),
     link:document.getElementById('fLink').value.trim(),
     topics:getSelectedTopics(),
+    bookType: document.getElementById('fCategory').value==='libros'
+      ? document.querySelector('input[name="fBookType"]:checked')?.value||'libro'
+      : '',
     status,
     seenDate:status==='seen'?document.getElementById('fSeenDate').value:'',
     note:document.getElementById('fNote').value.trim(),
@@ -925,7 +956,11 @@ document.querySelectorAll('input[name="fStatus"]').forEach(r=>{
       ['seen','paused','abandoned','watching'].includes(this.value)?'block':'none';
   });
 });
-function setCategory(cat){ currentCategory=cat; renderAll(); }
+function setCategory(cat){
+  currentCategory=cat;
+  document.getElementById('bookTypeFilter').style.display = cat==='libros' ? 'flex' : 'none';
+  renderAll();
+}
 function setSort(s,btn){ currentSort=s; document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderCards(); }
 
 // ══════════════════════════════════════════════
@@ -975,6 +1010,17 @@ function renderStatsContent(seenItems, years){
   </div>`;
 
   // Category breakdown (all seen)
+  // Book type stats (only if there are libros)
+  const seenLibros = seenItems.filter(i=>i.category==='libros');
+  if(seenLibros.length){
+    const libros = seenLibros.filter(i=>(i.bookType||'libro')==='libro').length;
+    const audios = seenLibros.filter(i=>i.bookType==='audiolibro').length;
+    html += `<div class="stats-section-title">📚 Libros vs Audiolibros (leídos)</div>
+    <div class="stats-grid" style="grid-template-columns:1fr 1fr;margin-bottom:12px">
+      <div class="stat-card"><div class="stat-num">📕 ${libros}</div><div class="stat-label">Libros</div></div>
+      <div class="stat-card"><div class="stat-num">🎧 ${audios}</div><div class="stat-label">Audiolibros</div></div>
+    </div>`;
+  }
   html += `<div class="stats-section-title">🎬 Por categoría (vistos)</div><div class="cat-bars">`;
   const catCounts = {};
   seenItems.forEach(i=>{ catCounts[i.category]=(catCounts[i.category]||0)+1; });
