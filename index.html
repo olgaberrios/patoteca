@@ -1063,7 +1063,12 @@ function renderStatsContent(seenItems, years){
       yearItems.forEach(i=>{
         const m = parseInt(i.seenDate.slice(5,7))-1;
         monthlyCounts[m]++;
-        monthlyByCategory[m][i.category]=(monthlyByCategory[m][i.category]||0)+1;
+        // For libros, split by bookType (libro vs audiolibro) as separate keys
+        let key = i.category;
+        if(i.category==='libros'){
+          key = (i.bookType==='audiolibro') ? 'libros_audio' : 'libros_papel';
+        }
+        monthlyByCategory[m][key]=(monthlyByCategory[m][key]||0)+1;
       });
       const maxMonth = Math.max(...monthlyCounts, 1);
       const yearTotal = yearItems.length;
@@ -1075,7 +1080,12 @@ function renderStatsContent(seenItems, years){
         // Build tooltip: category breakdown for this month
         const catDetail = Object.entries(monthlyByCategory[m])
           .sort((a,b)=>b[1]-a[1])
-          .map(([cid,n])=>{ const co=db.categories.find(c=>c.id===cid)||{emoji:'📌'}; return `${co.emoji}×${n}`; })
+          .map(([cid,n])=>{
+            if(cid==='libros_papel') return `📕×${n}`;
+            if(cid==='libros_audio') return `🎧×${n}`;
+            const co=db.categories.find(c=>c.id===cid)||{emoji:'📌'};
+            return `${co.emoji}×${n}`;
+          })
           .join(' ');
         const inside = pct > 25;
         html += `<div class="month-row">
