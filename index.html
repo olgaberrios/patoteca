@@ -270,7 +270,7 @@
   </div>
   <div class="filter-group">
     <span class="filter-label">Orden</span>
-    <button class="sort-btn active" data-sort="date" onclick="setSort('date',this)">📅 Fecha</button>
+    <button class="sort-btn active" data-sort="date" onclick="setSort('date',this)">🕐 Reciente</button>
     <button class="sort-btn" data-sort="alpha" onclick="setSort('alpha',this)">🔤 A–Z</button>
     <button class="sort-btn" data-sort="genre" onclick="setSort('genre',this)">🎭 Género</button>
   </div>
@@ -625,22 +625,13 @@ function renderCards(){
     return true;
   });
 
-  const statusOrder = {watching:0,paused:1,pending:2,seen:3,abandoned:4};
+  const lastActivity = i => i.updatedAt || i.addedDate || '0';
   if(currentSort==='alpha'){
-    items.sort((a,b)=>{
-      const so=(statusOrder[a.status]||2)-(statusOrder[b.status]||2);
-      return so!==0?so:a.title.localeCompare(b.title,'es');
-    });
+    items.sort((a,b)=>a.title.localeCompare(b.title,'es'));
   } else if(currentSort==='genre'){
-    items.sort((a,b)=>{
-      const so=(statusOrder[a.status]||2)-(statusOrder[b.status]||2);
-      return so!==0?so:((a.genres||[])[0]||'').localeCompare(((b.genres||[])[0]||''),'es');
-    });
+    items.sort((a,b)=>((a.genres||[])[0]||'').localeCompare(((b.genres||[])[0]||''),'es'));
   } else {
-    items.sort((a,b)=>{
-      const so=(statusOrder[a.status]||2)-(statusOrder[b.status]||2);
-      return so!==0?so:new Date(b.addedDate)-new Date(a.addedDate);
-    });
+    items.sort((a,b)=>lastActivity(b).localeCompare(lastActivity(a)));
   }
 
   if(!items.length){
@@ -759,6 +750,7 @@ function saveItem(){
     seenDate:status==='seen'?document.getElementById('fSeenDate').value:'',
     note:document.getElementById('fNote').value.trim(),
     addedDate:editingId?(db.items.find(i=>i.id===editingId)?.addedDate||today()):today(),
+    updatedAt:today(),
   };
   if(editingId){ db.items=db.items.map(i=>i.id===editingId?item:i); showToast('✏️ Guardado'); }
   else{ db.items.unshift(item); showToast('🐥 Añadido'); }
