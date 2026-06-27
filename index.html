@@ -1023,11 +1023,22 @@ function renderStatsContent(seenItems, years){
   }
   html += `<div class="stats-section-title">🎬 Por categoría (vistos)</div><div class="cat-bars">`;
   const catCounts = {};
-  seenItems.forEach(i=>{ catCounts[i.category]=(catCounts[i.category]||0)+1; });
+  seenItems.forEach(i=>{
+    if(i.category==='libros'){
+      const key = i.bookType==='audiolibro' ? 'libros_audio' : 'libros_papel';
+      catCounts[key]=(catCounts[key]||0)+1;
+    } else {
+      catCounts[i.category]=(catCounts[i.category]||0)+1;
+    }
+  });
+  const catMeta = {
+    libros_papel: {emoji:'📕', label:'Libros'},
+    libros_audio: {emoji:'🎧', label:'Audiolibros'},
+  };
   const maxCat = Math.max(...Object.values(catCounts), 1);
   const sortedCats = Object.entries(catCounts).sort((a,b)=>b[1]-a[1]);
   sortedCats.forEach(([catId, cnt])=>{
-    const catObj = db.categories.find(c=>c.id===catId)||{emoji:'📌',label:catId};
+    const catObj = catMeta[catId] || db.categories.find(c=>c.id===catId) || {emoji:'📌',label:catId};
     const pct = Math.round((cnt/maxCat)*100);
     html += `<div class="cat-row">
       <div class="cat-name">${catObj.emoji} ${catObj.label}</div>
